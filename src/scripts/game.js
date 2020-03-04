@@ -1,11 +1,20 @@
 import { cD, renderChar, startX, startY } from "./char";
-import createMonster from "./monster";
+import { Monster} from "./monster";
+
+
+const rng = (num) => Math.floor(Math.random() * num);
 
 var goldBar = new Image();
 goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
 
 var wall = new Image();
 wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
+
+export var floorTile = new Image();
+// floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192637.svg"; // COLORED
+// floorTile.src = "https://image.flaticon.com/icons/svg/1193/1193200.svg"; // BLACK ON WHITE
+// floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192587.svg"; // WHITE ON BLACK
+export const floorBGColor = "#999";
 
 var healthPotion = new Image();
 healthPotion.src = "https://image.flaticon.com/icons/svg/506/506927.svg";
@@ -16,8 +25,6 @@ manaPotion.src = "https://image.flaticon.com/icons/svg/1006/1006951.svg";
 var sword = new Image();
 sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
 
-var monster = new Image();
-monster.src = "https://image.flaticon.com/icons/svg/2332/2332563.svg";
 // wC can have
 // "w" = Wall
 // "C" = Character (Player)
@@ -50,97 +57,215 @@ let wC = []; // wall constraints (and everything in between)
 for(let i = 0; i < maxWidth; i++){
     wC[i] = [];
     if(i === 0 || i === maxWidth-1){
-        wC[i] = "w ".repeat(maxHeight).split(" ").slice(0, -1)
+        wC[i] = []
+        for(let j = 0; j <= maxHeight; j++){
+            wC[i].push("w");
+        }
         continue;
     }
     for(let j = 0; j < maxHeight; j++){
         if(j === 0 || j === maxHeight-1){
             wC[i].push("w");
-        } else {wC[i].push(" ")}
+        } else {
+            wC[i].push([])
+        }
     }
 }
+window.wC = wC
 // Place character in starting position
-wC[char[0]][char[1]] = "C";
-// Place gold all over
-wC[6][6] = "G";
-wC[9][9] = "G";
+wC[char[0]][char[1]] = ["C"];
 // Some Health Potions
-wC[1][1] = "HP";
-wC[1][2] = "HP";
-wC[1][3] = "HP";
-wC[1][4] = "MP";
-wC[2][1] = "HP";
-wC[2][2] = "HP";
-wC[2][3] = "HP";
-wC[2][4] = "MP";
-wC[3][3] = "M";
-let monsters = {}
-monsters[3] = {};
-monsters[3][3] = createMonster(100);
+wC[9][4].push("HP");
+wC[9][4].push("HP");
+wC[9][4].push("HP");
+wC[9][4].push("MP");
+wC[9][4].push("HP");
+wC[9][4].push("HP");
+wC[9][4].push("HP");
+wC[9][4].push("MP");
+let monsters = [];
+window.monsters = monsters;
+monsters.push(new Monster("o", 3, 3));
+monsters.push(new Monster("o", 5, 7));
+let mATKS = [];
 
 let goldCount = 0;
 let inventory = [];
-let currentHP = 5;
+let currentHP = 10;
 let maxHP = 100;
 let currentMP = 50;
 let maxMP = 100;
 let showAttack = false;
+let monstersMove = false;
+let gameOver = false;
 let attackBlock = [null,null];
 
 const canvas = document.getElementById("gameCanvas");
 const gameCanvas = canvas.getContext("2d");
 
 export const moveChar = (dx, dy) => {
+    if (char[0] === -1000){return null;}
     const newPos = wC[char[0] + dx][char[1] + dy];
-    switch(newPos){   
-        case "G": // Collect Gold
-            // console.log("You got gold");
-            goldCount += 100;
-            break;
-        case "HP": // Collect Health Potion
-            // console.log("You got Health Potion");
-            inventory.push("HP");
-            break;
-        case "MP": // Collect Health Potion
-            // console.log("You got Mana Potion");
-            inventory.push("MP");
-            break;
-        default:
-            break;
+    let walled = false;
+    let newGold = goldCount;
+    let newInv = inventory.slice();
+    for(let i = 0; i < newPos.length; i++){
+        switch (newPos[i]) {
+            case "G": // Collect Gold
+                newGold += 1;
+                break;
+            case "HP": // Collect Health Potion
+                newInv.push("HP");
+                break;
+            case "MP": // Collect Health Potion
+                newInv.push("MP");
+                break;
+            case "w":
+                walled = true;
+                break;
+            default:
+                break;
+        }
     }
-    
+    let monsterBlock = false;
+    for(let i = 0; i < monsters.length; i++){
+        if (monsters[i].x === char[0]+dx && monsters[i].y === char[1]+dy) {
+            monsterBlock = true;
+        }
+    }
     // Prevents player from running into wall
-    if(newPos !== "w" && newPos !== "M"){ //if new pos is not a wall. this was already done in index but this is double checking
-        wC[char[0]][char[1]] = " ";
+    if(!walled && !monsterBlock){ //if new pos is not a wall. this was already done in index but this is double checking
+        goldCount = newGold;
+        inventory = newInv;
+        wC[char[0]][char[1]] = [];
         char[0] += dx;
         char[1] += dy;
-        wC[char[0]][char[1]] = "C";
-        // TODO: Move Monsters Here
+        wC[char[0]][char[1]] = ["C"];
+        if (dx + dy !== 0 || monstersMove) {
+            monstersMove = false;
+            let monsterPos = [];
+            for(let i = 0; i < monsters.length; i++){
+                monsterPos.push([monsters[i].x, monsters[i].y])
+            }
+            monsters.forEach(monster => {
+                const monsterTurn = monster.takeTurn(char[0], char[1]);
+                if (monsterTurn) {
+                    if (wC[monster.attackX][monster.attackY][0] === "C") {
+                        currentHP -= 10;
+                    }
+                    monster.attackX = null;
+                    monster.attackY = null;
+                    monsterPos.push([monster.x, monster.y]);
+                } else if(monsterTurn === false) {
+                    // Difference between char and monster
+                    const dxMon = char[0] - monster.x;
+                    const dyMon = char[1] - monster.y;
+                    // Step towards the player
+                    const dxMonNorm = Math.abs(dxMon) / dxMon || 0;
+                    const dyMonNorm = Math.abs(dyMon) / dyMon || 0;
+                    // New Pos if they move
+                    const newMonX = monster.x + dxMonNorm;
+                    const newMonY = monster.y + dyMonNorm;
+                    // can move in that direction
+                    let canMoveX = true;
+                    let canMoveY = true;
+                    for (let i = 0; i < monsterPos.length; i++) {
+                        if (monsterPos[i][0] === monster.x && monsterPos[i][1] === newMonY) {
+                            canMoveX = false;
+                        }
+                        if (monsterPos[i][0] === newMonX && monsterPos[i][1] === monster.y) {
+                            canMoveY = false;
+                        }
+                    } 
+                    for (let i = 0; i < monsterPos.length; i++) {
+                        if(monster.x === monsterPos[i][0] && monster.y === monsterPos[i][0]){
+                            monsterPos = monsterPos.slice(0, i).concat(monsterPos.slice(i+1, monsterPos.length));
+                            break;
+                        }
+                    }
+                    if (Math.abs(dxMon) > Math.abs(dyMon) && canMoveX) {
+                        monster.x = newMonX;
+                    } else if(canMoveY) {
+                        monster.y = newMonY;
+                    }
+                    monsterPos.push([monster.x, monster.y])
+                }
+            })
+        }
+        if (currentHP <= 0) {
+            currentHP = 0;
+            wC[char[0]][char[1]] = [];
+            char[0] = -1000
+            char[1] = -1000
+            gameOver = true;
+        }
     } else {return char;} 
     // Drawing Walls, Gold, etc.
     gameCanvas.beginPath();
+    if(showInvCursor || gameOver){
+        gameCanvas.globalAlpha = 0.5;
+    }
     gameCanvas.clearRect(0,0,maxWidth*cD, maxHeight*cD);
+    for(let i = 0; i < maxWidth; i++){
+        for(let j = 0; j < maxHeight; j++){
+            //Dungeon Floor
+            gameCanvas.rect(i * cD, j * cD, cD, cD);
+            gameCanvas.fillStyle = floorBGColor;
+            gameCanvas.fill();
+            gameCanvas.drawImage(floorTile, i * cD, j * cD, cD, cD);
+        }
+    }
+    gameCanvas.closePath();
+    gameCanvas.beginPath();
+    mATKS = [];
     for (let i = 0; i < maxWidth; i++) {
         for (let j = 0; j < maxHeight; j++) {
-            switch(wC[i][j]){
-                case "w":
-                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
-                    break;
-                case "G":
-                    gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD);
-                    break;
-                case "HP":
-                    gameCanvas.drawImage(healthPotion, i*cD, j*cD, cD, cD);
-                    break;
-                case "MP":
-                    gameCanvas.drawImage(manaPotion, i*cD, j*cD, cD, cD);
-                    break;
-                case "M":
-                    gameCanvas.drawImage(monster, i*cD, j*cD, cD, cD);
-                    break;
-                default:
-                    break;
+            let renderGold = false;
+            let renderHP = false;
+            let renderMP = false;
+            let renderWall = false;
+            for(let k = 0; k < wC[i][j].length; k++){
+                switch (wC[i][j][k]) {
+                    case "C":
+                        // render character in new position
+                        renderChar(char[0], char[1]);
+                        break;
+                    case "w":
+                        // gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
+                        renderWall = true;
+                        break;
+                    case "G":
+                        // gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD);
+                        renderGold = true;
+                        break;
+                    case "HP":
+                        // gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD);
+                        renderHP = true;
+                        break;
+                    case "MP":
+                        // gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD);
+                        renderMP = true;
+                        break;
+                    default:
+                        break;
+                }
             }
+            if (renderGold) { gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD); }
+            if (renderHP) { gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD); }
+            if (renderMP) { gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD); }
+            if (renderWall) { gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);}
+        }
+    }
+    for(let i = 0; i < monsters.length; i++){
+        // const monster = monsters[i][j];
+        let monster = monsters[i];
+        gameCanvas.drawImage(monster.monsterIMG, monster.x * cD, monster.y * cD, cD, cD);
+        // if monster is attacking, show direction
+        if (monster.attackX !== null) {
+            gameCanvas.globalAlpha = 0.5;
+            gameCanvas.drawImage(monster.monsterATK, monster.attackX * cD, monster.attackY * cD, cD, cD);
+            gameCanvas.globalAlpha = 1;
+
         }
     }
     gameCanvas.closePath();
@@ -150,6 +275,10 @@ export const moveChar = (dx, dy) => {
         gameCanvas.drawImage(sword, attackBlock[0]*cD, attackBlock[1]*cD, cD, cD)
         gameCanvas.globalAlpha = 1;
         gameCanvas.closePath();
+    }
+
+    if (showInvCursor || gameOver) {
+        gameCanvas.globalAlpha = 1;
     }
     // Inventory UI
     gameCanvas.beginPath();
@@ -199,6 +328,9 @@ export const moveChar = (dx, dy) => {
     // Inventory Cursor
     if (showInvCursor) {
         gameCanvas.beginPath();
+        gameCanvas.font = "50px Robot, sans serif";
+        gameCanvas.fillStyle = "#000";
+        gameCanvas.fillText("INVENTORY", maxWidth * cD / 2, maxHeight * cD / 2);
         gameCanvas.rect(invCursorX, invCursorY, cD, cD);
         gameCanvas.strokeStyle = "#FFF";
         gameCanvas.stroke();
@@ -207,11 +339,18 @@ export const moveChar = (dx, dy) => {
 
     // Gold Counter
     gameCanvas.beginPath();
-    gameCanvas.font = "25px Robot, sans serif";
+    gameCanvas.drawImage(goldBar, maxWidth*cD+20, 0, cD, cD);
+    gameCanvas.font = "15px Robot, sans serif";
     gameCanvas.fillStyle = "#ffd700"
-    gameCanvas.fillText(`Gold :${goldCount}`, maxWidth * 50 + 10, 30, 225);
-    // render character in new position
-    renderChar(char[0], char[1])
+    gameCanvas.fillText(`x ${goldCount}`, maxWidth * 50 + 80, 30, 225);
+    gameCanvas.closePath();
+    if(gameOver){ // If player died
+        gameCanvas.beginPath();
+        gameCanvas.font = "50px Robot, sans serif";
+        gameCanvas.fillStyle = "#ff0000";
+        gameCanvas.fillText("GAME OVER", maxWidth * cD / 2 - 25, maxHeight * cD / 2 + 25);
+        gameCanvas.closePath();
+    }
     return char;
 }
 
@@ -275,22 +414,43 @@ export const attackDir = (dx, dy) => {
     moveChar(0,0);
 }
 
-export const attack = () =>{
+export const attack = () => {
+    monstersMove = true;
     try{
-        const targetMonster = monsters[attackBlock[0]][attackBlock[1]];
-        targetMonster.currentHP -= 100;
-        if (targetMonster.currentHP <= 0) {
-            wC[attackBlock[0]][attackBlock[1]] = "G";
+        let mInd = null;
+        for(let i = 0; i < monsters.length; i++){
+            if (monsters[i].x === attackBlock[0] && monsters[i].y === attackBlock[1]){
+                mInd = i
+                break;
+            }
+        }
+        const newHP = monsters[mInd].takeDmg(100);
+        if (newHP <= 0) {
+            delete monsters[mInd];
+            monsters = monsters.slice(0,mInd).concat(monsters.slice(mInd+1, monsters.length));
+            const randomNum = rng(100);
+            // if (randomNum > 95) {
+            //     wC[attackBlock[0]][attackBlock[1]] = "MP";
+            // } // TODO:    Put this back in once MP is useful 
+            if (randomNum > 85) {
+                wC[attackBlock[0]][attackBlock[1]].push("HP");
+            } else {
+                wC[attackBlock[0]][attackBlock[1]].push("G");
+            }
         }
         toggleAttack();
     } catch (err) {
-        // console.log(err);
+        console.log(err);
         toggleAttack();
         gameCanvas.beginPath();
         gameCanvas.font = "8px Robot, sans serif";
         gameCanvas.fillStyle = "red";
-        gameCanvas.fillText("Invalid Target", char[0]*cD, char[1]*cD);
+        gameCanvas.fillText("Waited a turn", char[0]*cD, char[1]*cD);
         gameCanvas.closePath();
     }
     
+}
+
+const monsterTurn = () => {
+    // Monsters move towards player. If player is adjacent, monster attacks player
 }

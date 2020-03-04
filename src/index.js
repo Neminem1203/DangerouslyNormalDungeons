@@ -20,11 +20,11 @@ const keydownPress = e => {
         dy += 1
     }
 
-    if (e.key === "z") {
+    if (e.key === "z" || e.key === "Z") {
         // Open Inventory
         useInvCursor = !useInvCursor;
         toggleInvCursor(useInvCursor);
-    } else if(e.key === "x" && showAttack) {
+    } else if((e.key === "x" || e.key === "X") && showAttack) {
         // Cancel Attack
         toggleAttack(false);
         showAttack = false;

@@ -1,3 +1,4 @@
+import {floorTile, floorBGColor} from "./game";
 
 
 var playerImg = new Image();
@@ -17,13 +18,16 @@ const char = canvas.getContext("2d");
 
 export function renderChar(newX, newY) {
     char.beginPath();
-    char.clearRect(x * cD, y * cD, cD, cD);
-    char.clearRect(newX * cD, newY * cD, cD, cD);
+    char.fillStyle = floorBGColor;
+    // char.rect(x * cD, y * cD, cD, cD);
+    // char.rect(newX * cD, newY * cD, cD, cD);
+    char.fill();
+    // char.drawImage(floorTile, x*cD, y*cD, cD, cD)
+    // char.drawImage(floorTile, newX*cD, newY*cD, cD, cD)
     char.drawImage(playerImg, newX * cD, newY * cD, cD, cD);
 
 
     x = newX;
     y = newY;
-    char.globalAlpha = 1;
     char.closePath(); 
 }
