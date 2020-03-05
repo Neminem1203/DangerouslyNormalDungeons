@@ -83,11 +83,14 @@ wC[9][4].push("HP");
 wC[9][4].push("HP");
 wC[9][4].push("HP");
 wC[9][4].push("MP");
-let monsters = [];
+let monsters = {};
+for(let i = 1; i < maxWidth-1; i++){
+    monsters[i] = {};
+}
 window.monsters = monsters;
-monsters.push(new Monster("o", 3, 3));
-monsters.push(new Monster("o", 5, 7));
-let mATKS = [];
+monsters[3][3] = new Monster("o", 3, 3);
+monsters[3][4] = new Monster("o", 3, 4);
+monsters[5][7] = new Monster("o", 5, 7);
 
 let goldCount = 0;
 let inventory = [];
@@ -128,11 +131,20 @@ export const moveChar = (dx, dy) => {
         }
     }
     let monsterBlock = false;
-    for(let i = 0; i < monsters.length; i++){
-        if (monsters[i].x === char[0]+dx && monsters[i].y === char[1]+dy) {
-            monsterBlock = true;
-        }
-    }
+    // monsters = Array
+    // for(let i = 0; i < monsters.length; i++){
+    //     if (monsters[i].x === char[0]+dx && monsters[i].y === char[1]+dy) {
+    //         monsterBlock = true;
+    //     }
+    // }
+    // monsters = Object
+    Object.values(monsters).forEach(row => {
+        Object.values(row).forEach(monster => {
+            if (monster.x === char[0] + dx && monster.y === char[1] + dy) {
+                monsterBlock = true;
+            }
+        })
+    })
     // Prevents player from running into wall
     if(!walled && !monsterBlock){ //if new pos is not a wall. this was already done in index but this is double checking
         goldCount = newGold;
@@ -143,55 +155,55 @@ export const moveChar = (dx, dy) => {
         wC[char[0]][char[1]] = ["C"];
         if (dx + dy !== 0 || monstersMove) {
             monstersMove = false;
-            let monsterPos = [];
-            for(let i = 0; i < monsters.length; i++){
-                monsterPos.push([monsters[i].x, monsters[i].y])
-            }
-            monsters.forEach(monster => {
-                const monsterTurn = monster.takeTurn(char[0], char[1]);
-                if (monsterTurn) {
-                    if (wC[monster.attackX][monster.attackY][0] === "C") {
-                        currentHP -= 10;
-                    }
-                    monster.attackX = null;
-                    monster.attackY = null;
-                    monsterPos.push([monster.x, monster.y]);
-                } else if(monsterTurn === false) {
-                    // Difference between char and monster
-                    const dxMon = char[0] - monster.x;
-                    const dyMon = char[1] - monster.y;
-                    // Step towards the player
-                    const dxMonNorm = Math.abs(dxMon) / dxMon || 0;
-                    const dyMonNorm = Math.abs(dyMon) / dyMon || 0;
-                    // New Pos if they move
-                    const newMonX = monster.x + dxMonNorm;
-                    const newMonY = monster.y + dyMonNorm;
-                    // can move in that direction
-                    let canMoveX = true;
-                    let canMoveY = true;
-                    for (let i = 0; i < monsterPos.length; i++) {
-                        if (monsterPos[i][0] === monster.x && monsterPos[i][1] === newMonY) {
-                            canMoveX = false;
+            Object.values(monsters).forEach(row => {
+                Object.values(row).forEach(monster => {
+                    if (monster.moved) { return; }
+                    const monsterTurn = monster.takeTurn(char[0], char[1]);
+                    if (monsterTurn) {
+                        if (wC[monster.attackX][monster.attackY][0] === "C") {
+                            currentHP -= 10;
                         }
-                        if (monsterPos[i][0] === newMonX && monsterPos[i][1] === monster.y) {
+                        monster.attackX = null;
+                        monster.attackY = null;
+                    } else if (monsterTurn === false) {
+                        // Difference between char and monster
+                        const dxMon = char[0] - monster.x;
+                        const dyMon = char[1] - monster.y;
+                        // Step towards the player
+                        const dxMonNorm = Math.abs(dxMon) / dxMon || 0;
+                        const dyMonNorm = Math.abs(dyMon) / dyMon || 0;
+                        // New Pos if they move
+                        const newMonX = monster.x + dxMonNorm;
+                        const newMonY = monster.y + dyMonNorm;
+                        // can move in that direction
+                        let canMoveX = true;
+                        let canMoveY = true;
+
+                        if (monsters[monster.x][newMonY] !== undefined) {
                             canMoveY = false;
                         }
-                    } 
-                    for (let i = 0; i < monsterPos.length; i++) {
-                        if(monster.x === monsterPos[i][0] && monster.y === monsterPos[i][0]){
-                            monsterPos = monsterPos.slice(0, i).concat(monsterPos.slice(i+1, monsterPos.length));
-                            break;
+                        if (monsters[newMonX][monster.y] !== undefined) {
+                            canMoveX = false;
                         }
+                        debugger
+                        const tempMon = monster;
+                        delete monsters[monster.x][monster.y]
+                        if (Math.abs(dxMon) > Math.abs(dyMon) && canMoveX) {
+                            tempMon.x = newMonX;
+                        } else if (canMoveY) {
+                            tempMon.y = newMonY;
+                        }
+                        tempMon.moved = true;
+                        monsters[tempMon.x][tempMon.y] = tempMon;
                     }
-                    if (Math.abs(dxMon) > Math.abs(dyMon) && canMoveX) {
-                        monster.x = newMonX;
-                    } else if(canMoveY) {
-                        monster.y = newMonY;
-                    }
-                    monsterPos.push([monster.x, monster.y])
-                }
+                })
             })
         }
+        Object.values(monsters).forEach(row => {
+            Object.values(row).forEach(monster => {
+                monster.moved = false;
+            })
+        })
         if (currentHP <= 0) {
             currentHP = 0;
             wC[char[0]][char[1]] = [];
@@ -217,7 +229,6 @@ export const moveChar = (dx, dy) => {
     }
     gameCanvas.closePath();
     gameCanvas.beginPath();
-    mATKS = [];
     for (let i = 0; i < maxWidth; i++) {
         for (let j = 0; j < maxHeight; j++) {
             let renderGold = false;
@@ -256,18 +267,31 @@ export const moveChar = (dx, dy) => {
             if (renderWall) { gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);}
         }
     }
-    for(let i = 0; i < monsters.length; i++){
+    Object.values(monsters).forEach(row => {
+        Object.values(row).forEach(monster => {
         // const monster = monsters[i][j];
-        let monster = monsters[i];
-        gameCanvas.drawImage(monster.monsterIMG, monster.x * cD, monster.y * cD, cD, cD);
-        // if monster is attacking, show direction
-        if (monster.attackX !== null) {
-            gameCanvas.globalAlpha = 0.5;
-            gameCanvas.drawImage(monster.monsterATK, monster.attackX * cD, monster.attackY * cD, cD, cD);
-            gameCanvas.globalAlpha = 1;
+            gameCanvas.drawImage(monster.monsterIMG, monster.x * cD, monster.y * cD, cD, cD);
+            if (monster.currentHP < monster.maxHP) {
+                gameCanvas.fillStyle = "#FFF";
+                gameCanvas.rect(monster.x*cD, monster.y*cD, cD, 10);
+                gameCanvas.fill();
+                gameCanvas.closePath();
+                gameCanvas.beginPath();
+                gameCanvas.fillStyle = "#F00";
+                gameCanvas.rect(monster.x * cD, monster.y * cD, cD * (monster.currentHP / monster.maxHP), 10);
+                gameCanvas.fill();
+                gameCanvas.closePath();
+                gameCanvas.beginPath();
+            }
+            // if monster is attacking, show direction
+            if (monster.attackX !== null) {
+                gameCanvas.globalAlpha = 0.5;
+                gameCanvas.drawImage(monster.monsterATK, monster.attackX * cD, monster.attackY * cD, cD, cD);
+                gameCanvas.globalAlpha = 1;
 
-        }
-    }
+            }
+        })
+    })
     gameCanvas.closePath();
     if(showAttack === true){
         gameCanvas.beginPath();
@@ -291,10 +315,10 @@ export const moveChar = (dx, dy) => {
     for(let i = 0; i < inventory.length;i++){
         switch(inventory[i]){
             case "HP":
-                gameCanvas.drawImage(healthPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*50 + invYCoord, cD, cD)
+                gameCanvas.drawImage(healthPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
                 break;
             case "MP":
-                gameCanvas.drawImage(manaPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*50 + invYCoord, cD, cD)
+                gameCanvas.drawImage(manaPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
                 break;
             default:
                 break;
@@ -303,34 +327,34 @@ export const moveChar = (dx, dy) => {
     gameCanvas.closePath();
     // HP Bar
     gameCanvas.beginPath();
-    gameCanvas.rect(hpXCoord, hpYCoord, 250, hpHeight);
+    gameCanvas.rect(hpXCoord, hpYCoord, cD*5, hpHeight);
     gameCanvas.fillStyle = "#FFF";
     gameCanvas.fill();
     gameCanvas.closePath();
     // Current HP
     gameCanvas.beginPath();
-    gameCanvas.rect(hpXCoord, hpYCoord, (250 * currentHP/maxHP), hpHeight);
+    gameCanvas.rect(hpXCoord, hpYCoord, (cD*5 * currentHP/maxHP), hpHeight);
     gameCanvas.fillStyle = "#F00";
     gameCanvas.fill();
     gameCanvas.closePath();
     // MP Bar
     gameCanvas.beginPath();
-    gameCanvas.rect(hpXCoord, hpYCoord+hpHeight, 250, hpHeight);
+    gameCanvas.rect(hpXCoord, hpYCoord+hpHeight, cD*5, hpHeight);
     gameCanvas.fillStyle = "#FFF";
     gameCanvas.fill();
     gameCanvas.closePath();
     // Current MP
     gameCanvas.beginPath();
-    gameCanvas.rect(hpXCoord, hpYCoord+hpHeight, (250 * currentMP/maxMP), hpHeight);
+    gameCanvas.rect(hpXCoord, hpYCoord+hpHeight, (cD*5 * currentMP/maxMP), hpHeight);
     gameCanvas.fillStyle = "#00F";
     gameCanvas.fill();
     gameCanvas.closePath();
     // Inventory Cursor
     if (showInvCursor) {
         gameCanvas.beginPath();
-        gameCanvas.font = "50px Robot, sans serif";
+        gameCanvas.font = `${cD}px Robot, sans serif`;
         gameCanvas.fillStyle = "#000";
-        gameCanvas.fillText("INVENTORY", maxWidth * cD / 2, maxHeight * cD / 2);
+        gameCanvas.fillText("INVENTORY", (maxWidth * cD / 2)-cD*4, maxHeight * cD / 2);
         gameCanvas.rect(invCursorX, invCursorY, cD, cD);
         gameCanvas.strokeStyle = "#FFF";
         gameCanvas.stroke();
@@ -346,9 +370,9 @@ export const moveChar = (dx, dy) => {
     gameCanvas.closePath();
     if(gameOver){ // If player died
         gameCanvas.beginPath();
-        gameCanvas.font = "50px Robot, sans serif";
+        gameCanvas.font = `${cD}px Robot, sans serif`;
         gameCanvas.fillStyle = "#ff0000";
-        gameCanvas.fillText("GAME OVER", maxWidth * cD / 2 - 25, maxHeight * cD / 2 + 25);
+        gameCanvas.fillText("GAME OVER", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 25);
         gameCanvas.closePath();
     }
     return char;
@@ -417,17 +441,9 @@ export const attackDir = (dx, dy) => {
 export const attack = () => {
     monstersMove = true;
     try{
-        let mInd = null;
-        for(let i = 0; i < monsters.length; i++){
-            if (monsters[i].x === attackBlock[0] && monsters[i].y === attackBlock[1]){
-                mInd = i
-                break;
-            }
-        }
-        const newHP = monsters[mInd].takeDmg(100);
+        const newHP = monsters[attackBlock[0]][attackBlock[1]].takeDmg(50);
         if (newHP <= 0) {
-            delete monsters[mInd];
-            monsters = monsters.slice(0,mInd).concat(monsters.slice(mInd+1, monsters.length));
+            delete monsters[attackBlock[0]][attackBlock[1]];
             const randomNum = rng(100);
             // if (randomNum > 95) {
             //     wC[attackBlock[0]][attackBlock[1]] = "MP";
@@ -449,8 +465,4 @@ export const attack = () => {
         gameCanvas.closePath();
     }
     
-}
-
-const monsterTurn = () => {
-    // Monsters move towards player. If player is adjacent, monster attacks player
 }

@@ -28,6 +28,7 @@ export class Monster{
         this.y = y;
         this.attackX = null;
         this.attackY = null;
+        this.moved = false;
     }
 
     takeDmg(dmg){

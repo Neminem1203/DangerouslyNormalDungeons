@@ -6,7 +6,7 @@ let useInvCursor = false;
 let showAttack = false;
 
 const keydownPress = e => {
-    e.preventDefault();
+    if(e.key === " "){e.preventDefault();}
     let dx = 0;
     let dy = 0;
     // Movement
@@ -15,8 +15,10 @@ const keydownPress = e => {
     } else if (e.key == "Left" || e.key == "ArrowLeft") {
         dx -= 1;
     } else if (e.key == "Up" || e.key == "ArrowUp") {
+        e.preventDefault();
         dy -= 1
     } else if (e.key == "Down" || e.key == "ArrowDown") {
+        e.preventDefault();
         dy += 1
     }
 
