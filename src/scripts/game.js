@@ -10,6 +10,9 @@ goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
 var wall = new Image();
 wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
 
+var door = new Image();
+door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
+
 export var floorTile = new Image();
 // floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192637.svg"; // COLORED
 // floorTile.src = "https://image.flaticon.com/icons/svg/1193/1193200.svg"; // BLACK ON WHITE
@@ -27,6 +30,7 @@ sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
 
 // wC can have
 // "w" = Wall
+// "d" = Door
 // "C" = Character (Player)
 // "G" = Gold Bars
 // "HP" = Health Potion
@@ -54,43 +58,63 @@ const hpYCoord = 45;
 const hpHeight = 15
 // Initializing the wall
 let wC = []; // wall constraints (and everything in between)
-for(let i = 0; i < maxWidth; i++){
-    wC[i] = [];
-    if(i === 0 || i === maxWidth-1){
-        wC[i] = []
-        for(let j = 0; j <= maxHeight; j++){
-            wC[i].push("w");
-        }
-        continue;
-    }
-    for(let j = 0; j < maxHeight; j++){
-        if(j === 0 || j === maxHeight-1){
-            wC[i].push("w");
-        } else {
-            wC[i].push([])
-        }
-    }
-}
-window.wC = wC
-// Place character in starting position
-wC[char[0]][char[1]] = ["C"];
-// Some Health Potions
-wC[9][4].push("HP");
-wC[9][4].push("HP");
-wC[9][4].push("HP");
-wC[9][4].push("MP");
-wC[9][4].push("HP");
-wC[9][4].push("HP");
-wC[9][4].push("HP");
-wC[9][4].push("MP");
 let monsters = {};
-for(let i = 1; i < maxWidth-1; i++){
-    monsters[i] = {};
-}
+
+window.wC = wC
 window.monsters = monsters;
-monsters[3][3] = new Monster("o", 3, 3);
-monsters[3][4] = new Monster("o", 3, 4);
-monsters[5][7] = new Monster("o", 5, 7);
+
+const newRoom = () => {
+    wC = [];
+    monsters = {}; 
+    for (let i = 1; i < maxWidth - 1; i++) {
+        monsters[i] = {};
+    }
+    for (let i = 0; i < maxWidth; i++) {
+        wC[i] = [];
+        if (i === 0 || i === maxWidth - 1) {
+            wC[i] = []
+            for (let j = 0; j <= maxHeight; j++) {
+
+                if (j === (maxHeight - 1) / 2) {
+                    wC[i].push("d");
+                } else {
+                    wC[i].push("w");
+                }
+            }
+            continue;
+        }
+        for (let j = 0; j < maxHeight; j++) {
+            if (j === 0 || j === maxHeight - 1) {
+                if (i === (maxWidth - 1) / 2) {
+                    wC[i].push("d");
+                } else {
+                    wC[i].push("w");
+                }
+            } else {
+                wC[i].push([])
+            }
+        }
+    }
+
+    wC[9][4].push("HP");
+    wC[9][4].push("HP");
+    wC[9][4].push("HP");
+    wC[9][4].push("HP");
+    wC[9][4].push("HP");
+    wC[9][4].push("HP");
+    wC[9][4].push("MP");
+    wC[9][4].push("MP");
+
+    monsters[3][3] = new Monster("o", 3, 3);
+    monsters[3][4] = new Monster("o", 3, 4);
+    monsters[5][7] = new Monster("o", 5, 7);
+}
+
+newRoom();
+wC[char[0]][char[1]] = ["C"];
+// Place character in starting position
+// Some Health Potions
+
 
 let goldCount = 0;
 let inventory = [];
@@ -130,7 +154,7 @@ export const moveChar = (dx, dy) => {
                 break;
         }
     }
-    let monsterBlock = false;
+    let monsterBlock = false; 
     // monsters = Array
     // for(let i = 0; i < monsters.length; i++){
     //     if (monsters[i].x === char[0]+dx && monsters[i].y === char[1]+dy) {
@@ -152,6 +176,24 @@ export const moveChar = (dx, dy) => {
         wC[char[0]][char[1]] = [];
         char[0] += dx;
         char[1] += dy;
+        if(char[1] === (maxHeight-1)/2){
+            if (char[0] === 0) {
+                newRoom();
+                char[0] = maxWidth - 2;
+            } else if (char[0] === maxWidth-1) {
+                newRoom();
+                char[0] = 1;
+            }
+        } else if(char[0] === (maxWidth-1)/2){
+            if(char[1] === 0){
+                newRoom();
+                char[1] = maxHeight-2;
+            } else if (char[1] === maxHeight-1){
+                newRoom();
+                char[1] = 1;
+            }
+        }
+
         wC[char[0]][char[1]] = ["C"];
         if (dx + dy !== 0 || monstersMove) {
             monstersMove = false;
@@ -185,7 +227,6 @@ export const moveChar = (dx, dy) => {
                         if (monsters[newMonX][monster.y] !== undefined) {
                             canMoveX = false;
                         }
-                        debugger
                         const tempMon = monster;
                         delete monsters[monster.x][monster.y]
                         if (Math.abs(dxMon) > Math.abs(dyMon) && canMoveX) {
@@ -211,6 +252,7 @@ export const moveChar = (dx, dy) => {
             char[1] = -1000
             gameOver = true;
         }
+        
     } else {return char;} 
     // Drawing Walls, Gold, etc.
     gameCanvas.beginPath();
@@ -235,6 +277,7 @@ export const moveChar = (dx, dy) => {
             let renderHP = false;
             let renderMP = false;
             let renderWall = false;
+            let renderDoor = false;
             for(let k = 0; k < wC[i][j].length; k++){
                 switch (wC[i][j][k]) {
                     case "C":
@@ -244,6 +287,9 @@ export const moveChar = (dx, dy) => {
                     case "w":
                         // gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                         renderWall = true;
+                        break;
+                    case "d":
+                        renderDoor = true;
                         break;
                     case "G":
                         // gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD);
@@ -265,6 +311,7 @@ export const moveChar = (dx, dy) => {
             if (renderHP) { gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD); }
             if (renderMP) { gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD); }
             if (renderWall) { gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);}
+            if (renderDoor) { gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);}
         }
     }
     Object.values(monsters).forEach(row => {
