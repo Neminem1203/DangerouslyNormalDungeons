@@ -55,20 +55,17 @@ const keydownPress = e => {
     }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("gameCanvas");
-    // canvas.width = window.innerWidth - 10;
-    // canvas.height = window.innerHeight - 20;
-    // Set the width and height of canvas
-    canvas.width = maxWidth * cD + 300;
-    canvas.height = maxHeight * cD;
-    // moveChar renders the character without moving it
-    setTimeout(() => {
-        moveChar(0, 0)
-        togglePause();
-    }, 100)
-    console.log("Game Loaded");
-    // This will allow us to move the character
-    document.addEventListener("keydown", keydownPress, false);
-});
-
+const canvas = document.getElementById("gameCanvas");
+// canvas.width = window.innerWidth - 10;
+// canvas.height = window.innerHeight - 20;
+// Set the width and height of canvas
+canvas.width = maxWidth * cD + 300;
+canvas.height = maxHeight * cD;
+// moveChar renders the character without moving it
+setTimeout(() => {
+    moveChar(0, 0)
+    togglePause();
+}, 100)
+console.log("Game Loaded");
+// This will allow us to move the character
+document.addEventListener("keydown", keydownPress, false);
