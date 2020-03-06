@@ -66,7 +66,7 @@ window.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         moveChar(0, 0)
         togglePause();
-    }, 10)
+    }, 100)
     
     // This will allow us to move the character
     document.addEventListener("keydown", keydownPress, false);
