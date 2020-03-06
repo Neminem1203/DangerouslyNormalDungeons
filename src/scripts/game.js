@@ -1,42 +1,26 @@
 import { cD, renderChar, startX, startY } from "./char";
 import { Monster} from "./monster";
 
-
-const rng = (num) => Math.floor(Math.random() * num);
-
+// Random Number Generator
+const rng = (num) => Math.floor(Math.random() * num)+1;
+//Images
 var goldBar = new Image();
 goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
-
 var wall = new Image();
 wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
-
 var door = new Image();
 door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
-
 export var floorTile = new Image();
 // floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192637.svg"; // COLORED
 // floorTile.src = "https://image.flaticon.com/icons/svg/1193/1193200.svg"; // BLACK ON WHITE
 // floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192587.svg"; // WHITE ON BLACK
 export const floorBGColor = "#999";
-
 var healthPotion = new Image();
 healthPotion.src = "https://image.flaticon.com/icons/svg/506/506927.svg";
-
 var manaPotion = new Image();
 manaPotion.src = "https://image.flaticon.com/icons/svg/1006/1006951.svg";
-
 var sword = new Image();
 sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
-
-// wC can have
-// "w" = Wall
-// "d" = Door
-// "C" = Character (Player)
-// "G" = Gold Bars
-// "HP" = Health Potion
-// "MP" = Mana Potion
-// "M" = Monster
-
 // width and height of dungeons
 export const maxWidth = 19;
 export const maxHeight = 11;
@@ -45,166 +29,139 @@ const invXCoord = maxWidth * cD + 22;
 const invYCoord = 90;
 const invWidth = 5;
 const invHeight = 5;
+// Inventory Cursor
 let showInvCursor = false;
 let invCursorX = maxWidth * cD + 22;
 let invCursorY = 90;
 let invCursorPos = 0;
-
 // Char Pos
 const char = [startX, startY];
 // HP Bar
 const hpXCoord = maxWidth * cD + 22;
 const hpYCoord = 45;
 const hpHeight = 15
-// Initializing the wall
-let wC = []; // wall constraints (and everything in between)
+// TODO: Implement rooms object when ready
+// let rooms = {}; // 9 * 9 room. player starts in [5][5]
+// for(let i = 0; i < 10; i++){
+//      rooms[i] = {};
+// }
+// let currentRoom = [5,5];
+// Items in the room
+let items = {
+    "G": [[1,1], [1,2]],
+    "HP": [[2,2], [2,3]],
+    "MP": [[3,3], [3,4]],
+};
 let monsters = {};
-
-
-const newRoom = () => {
-    wC = [];
-    monsters = {}; 
-    for (let i = 1; i < maxWidth - 1; i++) {
+// let monsterLimit = 3;
+const newRoom = () => { // Generate a new room
+    monsters = {};
+    items = {
+        "G": [[1, 1], [1, 2]],
+        "HP": [[2, 2], [2, 3]],
+        "MP": [[3, 3], [3, 4]],
+    };
+    for (let i = 1; i < maxWidth-1; i++) {
         monsters[i] = {};
     }
-    for (let i = 0; i < maxWidth; i++) {
-        wC[i] = [];
-        if (i === 0 || i === maxWidth - 1) {
-            wC[i] = []
-            for (let j = 0; j <= maxHeight; j++) {
-
-                if (j === (maxHeight - 1) / 2) {
-                    wC[i].push("d");
-                } else {
-                    wC[i].push("w");
-                }
-            }
-            continue;
+    // Monster generator
+    // let monsterNum = Math.floor((rng(100)-(100-monsterLimit*10)+9)/10);
+    let monsterNum = Math.floor(Math.log(rng(34)-10));
+    for(let i = 0; i < monsterNum; i++){
+        let x = char[0];
+        let y = char[1];
+        while(char[0] === x && char[1] === y) {
+            x = rng(maxWidth - 2);
+            y = rng(maxHeight - 2);
         }
-        for (let j = 0; j < maxHeight; j++) {
-            if (j === 0 || j === maxHeight - 1) {
-                if (i === (maxWidth - 1) / 2) {
-                    wC[i].push("d");
-                } else {
-                    wC[i].push("w");
-                }
-            } else {
-                wC[i].push([])
-            }
-        }
+        monsters[x][y] = new Monster("o", x, y)
     }
-
-
-    monsters[3][3] = new Monster("o", 3, 3);
-    monsters[3][4] = new Monster("o", 3, 4);
-    monsters[5][7] = new Monster("o", 5, 7);
 }
-
-newRoom();
-wC[char[0]][char[1]] = ["C"];
-// Place character in starting position
+newRoom(); // Generate the room in the beginning of the game
 // Some Health Potions
-
-
 let goldCount = 0;
-let inventory = ["HP", "HP", "MP"];
-let currentHP = 10;
+let inventory = ["HP", "HP", "HP", "HP", "MP"];
+let currentHP = 20;
 let maxHP = 100;
 let currentMP = 50;
 let maxMP = 100;
-let showAttack = false;
-let monstersMove = false;
-let gameOver = false;
-let attackBlock = [null,null];
-
-const canvas = document.getElementById("gameCanvas");
-const gameCanvas = canvas.getContext("2d");
-
+let showAttack = false; // When you prep an attack, it'll show your attack range
+let monstersMove = false; // Tells you when the monsters should move
+let gameOver = false; 
+let attackBlock = [null,null]; // the attack coords of your character
+// TODO: might have to change to dx, dy in the future when implementing different weapons 
+// Drawing Board
+const canvas = document.getElementById("gameCanvas"); // The actual canvas element
+const gameCanvas = canvas.getContext("2d"); // The paintbrush to draw everything required for this game
+// This is used to move the character. moveChar(0,0) is usually used to re-render the game
 export const moveChar = (dx, dy) => {
-    window.wC = wC
-    window.monsters = monsters;
-    if (char[0] === -1000){return null;}
-    const newPos = wC[char[0] + dx][char[1] + dy];
-    let walled = false;
-    let newGold = goldCount;
-    let newInv = inventory.slice();
-    for(let i = 0; i < newPos.length; i++){
-        if(newInv.length >= 25){break;}
-        switch (newPos[i]) {
-            case "G": // Collect Gold
-                newGold += 1;
-                break;
-            case "HP": // Collect Health Potion
-                newInv.push("HP");
-                break;
-            case "MP": // Collect Health Potion
-                newInv.push("MP");
-                break;
-            case "w":
-                walled = true;
-                break;
-            default:
-                break;
-        }
+    window.items = items;
+    if (char[0] < 0){return;} // The character has died
+    // Check to see if character is out of bounds
+    if(char[0] + dx === 0 || char[0] + dx === maxWidth-1){
+        if (char[1] !== (maxHeight - 1) / 2) {return;}
     }
+    if(char[1] + dy === 0 || char[1] + dy === maxHeight-1){
+        if (char[0] !== (maxWidth - 1) / 2)  {return;}
+    }
+    // Check to see if monster is blocking the characters movement
     let monsterBlock = false; 
-    // monsters = Array
-    // for(let i = 0; i < monsters.length; i++){
-    //     if (monsters[i].x === char[0]+dx && monsters[i].y === char[1]+dy) {
-    //         monsterBlock = true;
-    //     }
-    // }
-    // monsters = Object
     Object.values(monsters).forEach(row => {
         Object.values(row).forEach(monster => {
             if (monster.x === char[0] + dx && monster.y === char[1] + dy) {
-                monsterBlock = true;
+                monsterBlock = true; // Character is blocked from moving here
             }
         })
     })
-    // Prevents player from running into wall
-    if(!walled && !monsterBlock){ //if new pos is not a wall. this was already done in index but this is double checking
-        goldCount = newGold;
-        inventory = newInv;
-        wC[char[0]][char[1]] = [];
+    // If not blocked by monster, continue the action
+    if(!monsterBlock){
         char[0] += dx;
         char[1] += dy;
+        let movedRoom = false;
+        // Check to see if the player went through a door
+        // TODO: Make sure to only render doors that are valid (right now it's infinite dungeon)
         if(char[1] === (maxHeight-1)/2){
             if (char[0] === 0) {
-                newRoom();
                 char[0] = maxWidth - 2;
-            } else if (char[0] === maxWidth-1) {
                 newRoom();
+                movedRoom = true;
+            } else if (char[0] === maxWidth-1) {
                 char[0] = 1;
+                newRoom();
+                movedRoom = true;
             }
         } else if(char[0] === (maxWidth-1)/2){
             if(char[1] === 0){
-                newRoom();
                 char[1] = maxHeight-2;
-            } else if (char[1] === maxHeight-1){
                 newRoom();
+                movedRoom = true;
+            } else if (char[1] === maxHeight-1){
                 char[1] = 1;
+                newRoom();
+                movedRoom = true;
             }
         }
-
-        wC[char[0]][char[1]] = ["C"];
-        if (dx + dy !== 0 || monstersMove) {
+        // if the player moved (but not to another room) and the monsters are allowed to move
+        // then the monsters will take their turn
+        if ((dx + dy !== 0 || monstersMove) && !movedRoom) {
             monstersMove = false;
             Object.values(monsters).forEach(row => {
                 Object.values(row).forEach(monster => {
-                    if (monster.moved) { return; }
+                    if (monster.moved) { return; } // if the monster already moved this turn,
                     const monsterTurn = monster.takeTurn(char[0], char[1]);
-                    if (monsterTurn) {
-                        if (wC[monster.attackX][monster.attackY][0] === "C") {
+                    if (monsterTurn) { // If this returns true, the monster will be attacking a position
+                        if (monster.attackX === char[0] && monster.attackY === char[1]) {
+                            // If player is in the attack range, lose health
                             currentHP -= 10;
                         }
+                        // Attack has completed. Now set it to null
                         monster.attackX = null;
                         monster.attackY = null;
-                    } else if (monsterTurn === false) {
+                    } else if (monsterTurn === false) { // Not close enough to attack the player
                         // Difference between char and monster
                         const dxMon = char[0] - monster.x;
                         const dyMon = char[1] - monster.y;
-                        // Step towards the player
+                        // A step towards the player
                         const dxMonNorm = Math.abs(dxMon) / dxMon || 0;
                         const dyMonNorm = Math.abs(dyMon) / dyMon || 0;
                         // New Pos if they move
@@ -213,13 +170,15 @@ export const moveChar = (dx, dy) => {
                         // can move in that direction
                         let canMoveX = true;
                         let canMoveY = true;
-
+                        // Check if monsters are blocking
                         if (monsters[monster.x][newMonY] !== undefined) {
                             canMoveY = false;
                         }
                         if (monsters[newMonX][monster.y] !== undefined) {
                             canMoveX = false;
                         }
+                        // Temporarily save the monster, delete the monster from monsters object
+                        // Then move the monster and save it in the new coords
                         const tempMon = monster;
                         delete monsters[monster.x][monster.y]
                         if (Math.abs(dxMon) > Math.abs(dyMon)) {
@@ -227,16 +186,12 @@ export const moveChar = (dx, dy) => {
                                 tempMon.y = newMonY;
                             } else if(canMoveX){
                                 tempMon.x = newMonX;
-                            } else {
-                                console.log(`${monster.x}, ${monster.y} can't move`)
                             }
                         } else {
                             if (canMoveX) {
                                 tempMon.x = newMonX;
                             } else if (canMoveY) {
                                 tempMon.y = newMonY;
-                            } else {
-                                console.log(`${monster.x}, ${monster.y} can't move`)
                             }
                         }
                         tempMon.moved = true;
@@ -245,85 +200,139 @@ export const moveChar = (dx, dy) => {
                 })
             })
         }
+        // once all the monsters have moved, we will set it back to false for next turn
         Object.values(monsters).forEach(row => {
             Object.values(row).forEach(monster => {
-                monster.moved = false;
+                monster.moved = false; 
             })
         })
+        // If currentHP <= 0, we set gameOver to true so we player can't do anything
         if (currentHP <= 0) {
             currentHP = 0;
-            wC[char[0]][char[1]] = [];
-            char[0] = -1000
-            char[1] = -1000
+            char[0] = -1000;
+            char[1] = -1000;
             gameOver = true;
         }
         
-    } else {return char;} 
-    // Drawing Walls, Gold, etc.
+    } else {return;} // if character is blocked by the monster, don't move here
+    // Drawing Floor, Walls, Items, and Monsters
     gameCanvas.beginPath();
     if(showInvCursor || gameOver){
         gameCanvas.globalAlpha = 0.5;
     }
-    gameCanvas.clearRect(0,0,maxWidth*cD, maxHeight*cD);
-    for(let i = 0; i < maxWidth; i++){
-        for(let j = 0; j < maxHeight; j++){
+    gameCanvas.clearRect(0, 0, maxWidth * cD, maxHeight * cD);
+    gameCanvas.closePath();
+    for(let i = 1; i < maxWidth-1; i++){
+        for(let j = 1; j < maxHeight-1; j++){
             //Dungeon Floor
+            gameCanvas.beginPath();
             gameCanvas.rect(i * cD, j * cD, cD, cD);
             gameCanvas.fillStyle = floorBGColor;
             gameCanvas.fill();
             gameCanvas.drawImage(floorTile, i * cD, j * cD, cD, cD);
+            gameCanvas.closePath();
         }
     }
-    gameCanvas.closePath();
     gameCanvas.beginPath();
+    // Drawing the walls
     for (let i = 0; i < maxWidth; i++) {
+        if (i === 0 || i === maxWidth - 1) {
+            for (let j = 0; j <= maxHeight; j++) {
+                if (j === (maxHeight - 1) / 2) {
+                    gameCanvas.drawImage(door, i*cD, j*cD, cD, cD);
+                } else {
+                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
+                }
+            }
+            continue;
+        }
         for (let j = 0; j < maxHeight; j++) {
-            let renderGold = false;
-            let renderHP = false;
-            let renderMP = false;
-            let renderWall = false;
-            let renderDoor = false;
-            for(let k = 0; k < wC[i][j].length; k++){
-                switch (wC[i][j][k]) {
-                    case "C":
-                        // render character in new position
-                        renderChar(char[0], char[1]);
-                        break;
-                    case "w":
-                        // gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
-                        renderWall = true;
-                        break;
-                    case "d":
-                        renderDoor = true;
-                        break;
+            if (j === 0 || j === maxHeight - 1) {
+                if (i === (maxWidth - 1) / 2) {
+                    gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
+                } else {
+                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
+                }
+            }
+        }
+    }
+    // Drawing Items
+    Object.keys(items).forEach(itemName =>{
+        for(let i = 0; i < items[itemName].length; i++){
+            // If character is standing on the item, push it to their inventory
+            const x = items[itemName][i][0];
+            const y = items[itemName][i][1];
+            if ( x === char[0] && y === char[1]){
+                
+                if(itemName === "G"){goldCount++;}
+                else { inventory.push(itemName);}
+
+                items[itemName] = items[itemName].slice(0, i).concat(items[itemName].slice(i + 1, items.length));
+                i--;
+            } else {
+                switch(itemName){
                     case "G":
-                        // gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD);
-                        renderGold = true;
+                        gameCanvas.drawImage(goldBar, x * cD, y * cD, cD, cD);
                         break;
                     case "HP":
-                        // gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD);
-                        renderHP = true;
+                        gameCanvas.drawImage(healthPotion, x * cD, y * cD, cD, cD);
                         break;
                     case "MP":
-                        // gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD);
-                        renderMP = true;
+                        gameCanvas.drawImage(manaPotion, x * cD, y * cD, cD, cD);
                         break;
                     default:
+                        console.log(`Unknown Item: ${itemName}`)
                         break;
                 }
             }
-            if (renderGold) { gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD); }
-            if (renderHP) { gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD); }
-            if (renderMP) { gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD); }
-            if (renderWall) { gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);}
-            if (renderDoor) { gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);}
         }
-    }
+    })
+    // for (let i = 0; i < maxWidth; i++) {
+    //     for (let j = 0; j < maxHeight; j++) {
+    //         let renderGold = false;
+    //         let renderHP = false;
+    //         let renderMP = false;
+    //         // render Walls.
+    //         // iterate through items
+    //         // for(let k = 0; k < wC[i][j].length; k++){
+    //         //     switch (wC[i][j][k]) {
+    //         //         case "w":
+    //         //             // gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
+    //         //             renderWall = true;
+    //         //             break;
+    //         //         case "d":
+    //         //             renderDoor = true;
+    //         //             break;
+    //         //         case "G":
+    //         //             // gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD);
+    //         //             renderGold = true;
+    //         //             break;
+    //         //         case "HP":
+    //         //             // gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD);
+    //         //             renderHP = true;
+    //         //             break;
+    //         //         case "MP":
+    //         //             // gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD);
+    //         //             renderMP = true;
+    //         //             break;
+    //         //         default:
+    //         //             break;
+    //         //     }
+    //         // }
+    //         if (renderGold) { gameCanvas.drawImage(goldBar, i * cD, j * cD, cD, cD); }
+    //         if (renderHP) { gameCanvas.drawImage(healthPotion, i * cD, j * cD, cD, cD); }
+    //         if (renderMP) { gameCanvas.drawImage(manaPotion, i * cD, j * cD, cD, cD); }
+    //     }
+    // }
+    // Render the character
+    renderChar(char[0], char[1]);
+    // Render Monsters
     Object.values(monsters).forEach(row => {
         Object.values(row).forEach(monster => {
         // const monster = monsters[i][j];
             gameCanvas.drawImage(monster.monsterIMG, monster.x * cD, monster.y * cD, cD, cD);
-            if (monster.currentHP < monster.maxHP) {
+            // If monsters have less health than max health, render it
+            if (monster.currentHP < monster.maxHP) { 
                 gameCanvas.fillStyle = "#FFF";
                 gameCanvas.rect(monster.x*cD, monster.y*cD, cD, 10);
                 gameCanvas.fill();
@@ -336,16 +345,15 @@ export const moveChar = (dx, dy) => {
                 gameCanvas.beginPath();
             }
             // if monster is attacking, show direction
-            if (monster.attackX !== null) {
+            if (monster.attackX !== null) { 
                 gameCanvas.globalAlpha = 0.5;
                 gameCanvas.drawImage(monster.monsterATK, monster.attackX * cD, monster.attackY * cD, cD, cD);
                 gameCanvas.globalAlpha = 1;
-
             }
         })
     })
     gameCanvas.closePath();
-    if(showAttack === true){
+    if(showAttack === true){ // Show your attack range
         gameCanvas.beginPath();
         gameCanvas.globalAlpha = 0.8;
         gameCanvas.drawImage(sword, attackBlock[0]*cD, attackBlock[1]*cD, cD, cD)
@@ -427,7 +435,7 @@ export const moveChar = (dx, dy) => {
         gameCanvas.fillText("GAME OVER", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 25);
         gameCanvas.closePath();
     }
-    return char;
+    return;
 }
 
 export const toggleInvCursor = bool => {
@@ -500,13 +508,12 @@ export const attack = () => {
         if (newHP <= 0) {
             delete monsters[attackBlock[0]][attackBlock[1]];
             const randomNum = rng(100);
-            // if (randomNum > 95) {
-            //     wC[attackBlock[0]][attackBlock[1]] = "MP";
-            // } // TODO:    Put this back in once MP is useful 
-            if (randomNum > 85) {
-                wC[attackBlock[0]][attackBlock[1]].push("HP");
+            if(randomNum > 99){
+                items["MP"].push([attackBlock[0], attackBlock[1]]);
+            } else if(randomNum > 60){
+                items["HP"].push([attackBlock[0], attackBlock[1]]);
             } else {
-                wC[attackBlock[0]][attackBlock[1]].push("G");
+                items["G"].push([attackBlock[0], attackBlock[1]]);
             }
         }
         toggleAttack();
