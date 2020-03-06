@@ -60,8 +60,6 @@ const hpHeight = 15
 let wC = []; // wall constraints (and everything in between)
 let monsters = {};
 
-window.wC = wC
-window.monsters = monsters;
 
 const newRoom = () => {
     wC = [];
@@ -96,14 +94,6 @@ const newRoom = () => {
         }
     }
 
-    wC[9][4].push("HP");
-    wC[9][4].push("HP");
-    wC[9][4].push("HP");
-    wC[9][4].push("HP");
-    wC[9][4].push("HP");
-    wC[9][4].push("HP");
-    wC[9][4].push("MP");
-    wC[9][4].push("MP");
 
     monsters[3][3] = new Monster("o", 3, 3);
     monsters[3][4] = new Monster("o", 3, 4);
@@ -117,7 +107,7 @@ wC[char[0]][char[1]] = ["C"];
 
 
 let goldCount = 0;
-let inventory = [];
+let inventory = ["HP", "HP", "MP"];
 let currentHP = 10;
 let maxHP = 100;
 let currentMP = 50;
@@ -131,12 +121,15 @@ const canvas = document.getElementById("gameCanvas");
 const gameCanvas = canvas.getContext("2d");
 
 export const moveChar = (dx, dy) => {
+    window.wC = wC
+    window.monsters = monsters;
     if (char[0] === -1000){return null;}
     const newPos = wC[char[0] + dx][char[1] + dy];
     let walled = false;
     let newGold = goldCount;
     let newInv = inventory.slice();
     for(let i = 0; i < newPos.length; i++){
+        if(newInv.length >= 25){break;}
         switch (newPos[i]) {
             case "G": // Collect Gold
                 newGold += 1;
@@ -229,10 +222,22 @@ export const moveChar = (dx, dy) => {
                         }
                         const tempMon = monster;
                         delete monsters[monster.x][monster.y]
-                        if (Math.abs(dxMon) > Math.abs(dyMon) && canMoveX) {
-                            tempMon.x = newMonX;
-                        } else if (canMoveY) {
-                            tempMon.y = newMonY;
+                        if (Math.abs(dxMon) > Math.abs(dyMon)) {
+                            if (canMoveY) {
+                                tempMon.y = newMonY;
+                            } else if(canMoveX){
+                                tempMon.x = newMonX;
+                            } else {
+                                console.log(`${monster.x}, ${monster.y} can't move`)
+                            }
+                        } else {
+                            if (canMoveX) {
+                                tempMon.x = newMonX;
+                            } else if (canMoveY) {
+                                tempMon.y = newMonY;
+                            } else {
+                                console.log(`${monster.x}, ${monster.y} can't move`)
+                            }
                         }
                         tempMon.moved = true;
                         monsters[tempMon.x][tempMon.y] = tempMon;
@@ -466,6 +471,9 @@ export const useItem = () => {
         }
         if (currentHP > maxHP) {
             currentHP = maxHP;
+        }
+        if (currentMP > maxMP){
+            currentMP = maxMP;
         }
         inventory = inventory.slice(0, invCursorPos).concat(inventory.slice(invCursorPos + 1, inventory.length));
         moveChar(0,0);
