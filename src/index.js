@@ -67,7 +67,7 @@ window.addEventListener("DOMContentLoaded", () => {
         moveChar(0, 0)
         togglePause();
     }, 100)
-    
+    console.log("Game Loaded");
     // This will allow us to move the character
     document.addEventListener("keydown", keydownPress, false);
 });
