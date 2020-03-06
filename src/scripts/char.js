@@ -1,4 +1,4 @@
-import {floorTile, floorBGColor} from "./game";
+import {floorBGColor} from "./game";
 
 
 var playerImg = new Image();
@@ -22,8 +22,6 @@ export function renderChar(newX, newY) {
     // char.rect(x * cD, y * cD, cD, cD);
     // char.rect(newX * cD, newY * cD, cD, cD);
     char.fill();
-    // char.drawImage(floorTile, x*cD, y*cD, cD, cD)
-    // char.drawImage(floorTile, newX*cD, newY*cD, cD, cD)
     char.drawImage(playerImg, newX * cD, newY * cD, cD, cD);
 
 

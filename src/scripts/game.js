@@ -6,19 +6,21 @@ const rng = (num) => Math.floor(Math.random() * num)+1;
 //Images
 var goldBar = new Image();
 goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
+
 var wall = new Image();
 wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
+
 var door = new Image();
 door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
-export var floorTile = new Image();
-// floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192637.svg"; // COLORED
-// floorTile.src = "https://image.flaticon.com/icons/svg/1193/1193200.svg"; // BLACK ON WHITE
-// floorTile.src = "https://image.flaticon.com/icons/svg/1192/1192587.svg"; // WHITE ON BLACK
+
 export const floorBGColor = "#999";
+
 var healthPotion = new Image();
 healthPotion.src = "https://image.flaticon.com/icons/svg/506/506927.svg";
+
 var manaPotion = new Image();
 manaPotion.src = "https://image.flaticon.com/icons/svg/1006/1006951.svg";
+
 var sword = new Image();
 sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
 // width and height of dungeons
@@ -248,7 +250,6 @@ export const moveChar = (dx, dy) => {
             gameCanvas.rect(i * cD, j * cD, cD, cD);
             gameCanvas.fillStyle = floorBGColor;
             gameCanvas.fill();
-            gameCanvas.drawImage(floorTile, i * cD, j * cD, cD, cD);
             gameCanvas.closePath();
         }
     }
