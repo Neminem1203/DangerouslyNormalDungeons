@@ -47,19 +47,15 @@ const hpHeight = 15
 // }
 // let currentRoom = [5,5];
 // Items in the room
-let items = {
-    "G": [[1,1], [1,2]],
-    "HP": [[2,2], [2,3]],
-    "MP": [[3,3], [3,4]],
-};
+let items = {};
 let monsters = {};
 // let monsterLimit = 3;
 const newRoom = () => { // Generate a new room
     monsters = {};
     items = {
-        "G": [[1, 1], [1, 2]],
-        "HP": [[2, 2], [2, 3]],
-        "MP": [[3, 3], [3, 4]],
+        "G":[],
+        "HP":[],
+        "MP":[]
     };
     for (let i = 1; i < maxWidth-1; i++) {
         monsters[i] = {};
@@ -78,9 +74,14 @@ const newRoom = () => { // Generate a new room
     }
 }
 newRoom(); // Generate the room in the beginning of the game
+items = { // Initial Room has items for player
+    "G": [[1, 1], [1, 2]],
+    "HP": [[2, 2], [2, 3]],
+    "MP": [],
+};
 // Some Health Potions
 let goldCount = 0;
-let inventory = ["HP", "HP", "HP", "HP", "MP"];
+let inventory = ["HP",  "MP"];
 let currentHP = 20;
 let maxHP = 100;
 let currentMP = 50;

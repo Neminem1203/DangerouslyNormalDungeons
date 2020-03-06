@@ -7,7 +7,7 @@ playerImg.src = "https://image.flaticon.com/icons/svg/2328/2328493.svg";
 export let cD = 50; // character dimension
 // Players starting position
 export const startX = 9;
-export const startY = 9;
+export const startY = 5;
 
 let x = cD * startX;
 let y = cD * startY;
