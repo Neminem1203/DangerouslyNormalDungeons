@@ -49,7 +49,7 @@ const hpHeight = 15
 // Items in the room
 let items = {};
 let monsters = {};
-// let monsterLimit = 3;
+
 const newRoom = () => { // Generate a new room
     monsters = {};
     items = {
@@ -87,13 +87,18 @@ let maxHP = 100;
 let currentMP = 50;
 let maxMP = 100;
 let showAttack = false; // When you prep an attack, it'll show your attack range
+let attackBlock = [null,null]; // the attack coords of your character
 let monstersMove = false; // Tells you when the monsters should move
 let gameOver = false; 
-let attackBlock = [null,null]; // the attack coords of your character
+let showControls = false;
 // TODO: might have to change to dx, dy in the future when implementing different weapons 
 // Drawing Board
 const canvas = document.getElementById("gameCanvas"); // The actual canvas element
 const gameCanvas = canvas.getContext("2d"); // The paintbrush to draw everything required for this game
+export const togglePause = () =>{
+    showControls = !showControls;
+    moveChar(0,0);
+}
 // This is used to move the character. moveChar(0,0) is usually used to re-render the game
 export const moveChar = (dx, dy) => {
     window.items = items;
@@ -115,7 +120,7 @@ export const moveChar = (dx, dy) => {
         })
     })
     // If not blocked by monster, continue the action
-    if(!monsterBlock){
+    if(!monsterBlock && !showControls){
         char[0] += dx;
         char[1] += dy;
         let movedRoom = false;
@@ -214,7 +219,20 @@ export const moveChar = (dx, dy) => {
             char[1] = -1000;
             gameOver = true;
         }
-        
+    } else if(showControls){
+        gameCanvas.beginPath();
+        gameCanvas.fillStyle = "#555";
+        gameCanvas.rect(50, 50, (maxWidth-2)*cD, (maxHeight-2)*cD);
+        gameCanvas.fill();
+        gameCanvas.font = "30px Roboto, sans serif"
+        gameCanvas.fillStyle = "#FFF";
+        gameCanvas.fillText("Arrow keys = Movement", 60, 100)
+        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 60, 160)
+        gameCanvas.fillText("Z = Inventory", 60, 220)
+        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 60, 280)
+        gameCanvas.fillText("Esc = Show/Hide Controls", 60, (maxHeight-2)*cD)
+        gameCanvas.closePath()
+        return;
     } else {return;} // if character is blocked by the monster, don't move here
     // Drawing Floor, Walls, Items, and Monsters
     gameCanvas.beginPath();
@@ -413,7 +431,7 @@ export const moveChar = (dx, dy) => {
     // Inventory Cursor
     if (showInvCursor) {
         gameCanvas.beginPath();
-        gameCanvas.font = `${cD}px Robot, sans serif`;
+        gameCanvas.font = `${cD}px Roboto, sans serif`;
         gameCanvas.fillStyle = "#000";
         gameCanvas.fillText("INVENTORY", (maxWidth * cD / 2)-cD*4, maxHeight * cD / 2);
         gameCanvas.rect(invCursorX, invCursorY, cD, cD);
@@ -425,13 +443,13 @@ export const moveChar = (dx, dy) => {
     // Gold Counter
     gameCanvas.beginPath();
     gameCanvas.drawImage(goldBar, maxWidth*cD+20, 0, cD, cD);
-    gameCanvas.font = "15px Robot, sans serif";
+    gameCanvas.font = "15px Roboto, sans serif";
     gameCanvas.fillStyle = "#ffd700"
     gameCanvas.fillText(`x ${goldCount}`, maxWidth * 50 + 80, 30, 225);
     gameCanvas.closePath();
     if(gameOver){ // If player died
         gameCanvas.beginPath();
-        gameCanvas.font = `${cD}px Robot, sans serif`;
+        gameCanvas.font = `${cD}px Roboto, sans serif`;
         gameCanvas.fillStyle = "#ff0000";
         gameCanvas.fillText("GAME OVER", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 25);
         gameCanvas.closePath();
@@ -461,7 +479,7 @@ export const moveInvCursor = (dx, dy) => {
 export const useItem = () => {
     if (inventory.length < invCursorPos + 1) {
         gameCanvas.beginPath();
-        gameCanvas.font = "10px Robot, sans serif";
+        gameCanvas.font = "10px Roboto, sans serif";
         gameCanvas.fillStyle = "red";
         gameCanvas.fillText("Empty Slot", char[0] * cD, char[1] * cD);
         gameCanvas.closePath();
@@ -522,7 +540,7 @@ export const attack = () => {
         console.log(err);
         toggleAttack();
         gameCanvas.beginPath();
-        gameCanvas.font = "8px Robot, sans serif";
+        gameCanvas.font = "8px Roboto, sans serif";
         gameCanvas.fillStyle = "red";
         gameCanvas.fillText("Waited a turn", char[0]*cD, char[1]*cD);
         gameCanvas.closePath();

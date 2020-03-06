@@ -1,9 +1,10 @@
 import "./styles/index.scss";
-import { maxHeight, maxWidth, moveChar, useItem, moveInvCursor, toggleAttack, attack, attackDir, toggleInvCursor } from "./scripts/game"; 
+import { maxHeight, maxWidth, moveChar, useItem, moveInvCursor, toggleAttack, attack, attackDir, toggleInvCursor, togglePause } from "./scripts/game"; 
 import { cD } from "./scripts/char";
 
 let useInvCursor = false;
 let showAttack = false;
+let paused = true;
 
 const keydownPress = e => {
     if(e.key === " "){e.preventDefault();}
@@ -21,27 +22,29 @@ const keydownPress = e => {
         e.preventDefault();
         dy += 1
     }
-
-    if (e.key === "z" || e.key === "Z") {
+    if ((e.key === "z" || e.key === "Z") && !paused) {
         // Open Inventory
         useInvCursor = !useInvCursor;
         toggleInvCursor(useInvCursor);
-    } else if((e.key === "x" || e.key === "X") && showAttack) {
+    } else if((e.key === "x" || e.key === "X") && showAttack && !paused) {
         // Cancel Attack
         toggleAttack(false);
         showAttack = false;
-    } else if(dx+dy != 0 && !useInvCursor && !showAttack){
+    } else if(e.key === "Escape"){
+        paused = !paused;
+        togglePause();
+    } else if(dx+dy != 0 && !useInvCursor && !showAttack && !paused){
         // if the character has moved and we're not moving the inventory cursor and we're not attacking
         moveChar(dx, dy);
-    } else if (dx+dy != 0 && useInvCursor){ 
+    } else if (dx+dy != 0 && useInvCursor && !paused){ 
         // useInvCursor === true => move the inventory cursor
         moveInvCursor(dx, dy);
-    } else if (e.key === " " && useInvCursor){ 
+    } else if (e.key === " " && useInvCursor && !paused){ 
         // Use Item in inventory
         useItem();
-    } else if(dx+dy != 0 && showAttack){
+    } else if(dx+dy != 0 && showAttack && !paused){
         attackDir(dx, dy);
-    } else if (e.key === " " && !useInvCursor){
+    } else if (e.key === " " && !useInvCursor && !paused){
         // Attack
         if(showAttack){
             attack();
@@ -60,7 +63,11 @@ window.addEventListener("DOMContentLoaded", () => {
     canvas.width = maxWidth * cD + 300;
     canvas.height = maxHeight * cD;
     // moveChar renders the character without moving it
-    moveChar(0,0);
+    setTimeout(() => {
+        moveChar(0, 0)
+        togglePause();
+    }, 10)
+    
     // This will allow us to move the character
     document.addEventListener("keydown", keydownPress, false);
 });
