@@ -189,7 +189,7 @@ export const moveChar = (dx, dy) => {
                         // Then move the monster and save it in the new coords
                         const tempMon = monster;
                         delete monsters[monster.x][monster.y]
-                        if (Math.abs(dxMon) > Math.abs(dyMon)) {
+                        if (rng(100) < 50) {
                             if (canMoveY) {
                                 tempMon.y = newMonY;
                             } else if(canMoveX){
