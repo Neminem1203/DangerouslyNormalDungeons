@@ -72,13 +72,22 @@ const newRoom = () => { // Generate a new room
             x = rng(maxWidth - 2);
             y = rng(maxHeight - 2);
         }
-        monsters[x][y] = new Monster("o", x, y)
+        const monsterType = rng(100);
+        if (monsterType > 98) {
+            monsters[x][y] = new Monster("r", x, y)
+        } else if (monsterType > 80) {
+            monsters[x][y] = new Monster("v", x, y)
+        } else if (monsterType > 50) {
+            monsters[x][y] = new Monster("w", x, y)
+        } else{
+            monsters[x][y] = new Monster("o", x, y)
+        }
     }
 }
 newRoom(); // Generate the room in the beginning of the game
 items = { // Initial Room has items for player
-    "G": [[1, 1], [1, 2]],
-    "HP": [[2, 2], [2, 3]],
+    "G": [[17, 1], [17, 2]],
+    "HP": [[16, 2], [16, 3]],
     "MP": [],
 };
 // Some Health Potions
@@ -88,6 +97,7 @@ let currentHP = 20;
 let maxHP = 100;
 let currentMP = 50;
 let maxMP = 100;
+let userATK = 50;
 let showAttack = false; // When you prep an attack, it'll show your attack range
 let attackBlock = [null,null]; // the attack coords of your character
 let monstersMove = false; // Tells you when the monsters should move
@@ -160,7 +170,7 @@ export const moveChar = (dx, dy) => {
                     if (monsterTurn) { // If this returns true, the monster will be attacking a position
                         if (monster.attackX === char[0] && monster.attackY === char[1]) {
                             // If player is in the attack range, lose health
-                            currentHP -= 10;
+                            currentHP -= monster.dmg;
                         }
                         // Attack has completed. Now set it to null
                         monster.attackX = null;
@@ -223,16 +233,21 @@ export const moveChar = (dx, dy) => {
         }
     } else if(showControls){
         gameCanvas.beginPath();
+        gameCanvas.globalAlpha = 0.5;
         gameCanvas.fillStyle = "#555";
-        gameCanvas.rect(50, 50, (maxWidth-2)*cD, (maxHeight-2)*cD);
+        gameCanvas.rect(100, 100, (maxWidth-4)*cD, (maxHeight-4)*cD);
         gameCanvas.fill();
         gameCanvas.font = "30px Roboto, sans serif"
         gameCanvas.fillStyle = "#FFF";
-        gameCanvas.fillText("Arrow keys = Movement", 60, 100)
-        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 60, 160)
-        gameCanvas.fillText("Z = Inventory", 60, 220)
-        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 60, 280)
-        gameCanvas.fillText("Esc = Show/Hide Controls", 60, (maxHeight-2)*cD)
+        gameCanvas.fillText("Arrow keys = Movement", 110, 160)
+        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 110, 210)
+        gameCanvas.fillText("Z = Inventory", 110, 270)
+        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 110, 330)
+        gameCanvas.font = "15px Roboto, sans serif"
+        gameCanvas.fillText("Waiting occurs when you hit an empty area", 500, 350)
+        gameCanvas.font = "30px Roboto, sans serif"
+        gameCanvas.fillText("Esc = Show/Hide Controls", 110, 430)
+        gameCanvas.globalAlpha = 1;
         gameCanvas.closePath()
         return;
     } else {return;} // if character is blocked by the monster, don't move here
@@ -524,7 +539,7 @@ export const attackDir = (dx, dy) => {
 export const attack = () => {
     monstersMove = true;
     try{
-        const newHP = monsters[attackBlock[0]][attackBlock[1]].takeDmg(50);
+        const newHP = monsters[attackBlock[0]][attackBlock[1]].takeDmg(userATK);
         if (newHP <= 0) {
             delete monsters[attackBlock[0]][attackBlock[1]];
             const randomNum = rng(100);
