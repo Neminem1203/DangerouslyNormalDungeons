@@ -2,6 +2,9 @@ body{
     background-color: #222;
     color: white;
     font-family: "Press Start 2P";
+    background-image: url("background.jpg");
+    background-size: contain;
+    background-position: center 15vw;
 }
 
 #gameCanvas {
@@ -19,6 +22,8 @@ body{
 }
 
 #footer{
+    width: 80vw;
+    margin: 50px auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
