@@ -1,4 +1,8 @@
 
+
+// Random Number Generator
+const rng = (num) => Math.floor(Math.random() * num) + 1;
+
 var octopusIMG = new Image();
 octopusIMG.src = "https://image.flaticon.com/icons/svg/2196/2196893.svg";
 
@@ -33,7 +37,6 @@ export class Monster{
                 this.monsterIMG = octopusIMG;
                 this.monsterATK = octopusATK;
                 this.dmg = 10;
-                this.drops = ["HP", "G"]
                 break;
             case "w":
                 this.name = "Werewolf";
@@ -42,7 +45,6 @@ export class Monster{
                 this.monsterIMG = werewolfIMG;
                 this.monsterATK = werewolfATK;
                 this.dmg = 20;
-                this.drops = ["HP", "G", "ATK"]
                 break;
             case "v":
                 this.name = "Vampire";
@@ -94,5 +96,50 @@ export class Monster{
             return false // return false for not attacking
         }
         
+    }
+
+    randomDrop() {
+        const itemDrop = rng(100);
+        console.log(itemDrop);
+        switch(this.name){
+            case "Octopus":
+                if(itemDrop > 80){
+                    return "HP";
+                } else {
+                    return "G";
+                }
+            case "Werewolf":
+                if(itemDrop > 90){
+                    return "HP";
+                // } else if(itemDrop > 80){
+                //     return "MP";
+                } else {
+                    return "G";
+                }
+            case "Vampire":
+                if (itemDrop > 95) {
+                    return "INVULN";
+                } else if (itemDrop > 80) {
+                    return "ATK";
+                } else if(itemDrop > 65){
+                    return "DEF";
+                } else if(itemDrop > 50){
+                    return "HP";
+                // } else if(itemDrop > 40){
+                //     return "MP"
+                } else {
+                    return "G"
+                }
+            case "Reaper":
+                if(itemDrop > 50){
+                    return "DEATH";
+                } else if(itemDrop > 10){
+                    return "INVULN";
+                } else {
+                    return "HP";
+                }
+            case "Unknown":
+                return "G";
+        }
     }
 }

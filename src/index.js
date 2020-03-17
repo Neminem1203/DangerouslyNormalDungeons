@@ -30,7 +30,7 @@ const keydownPress = e => {
         // Cancel Attack
         toggleAttack(false);
         showAttack = false;
-    } else if(e.key === "Escape"){
+    } else if(e.key === "Escape" && !useInvCursor){
         paused = !paused;
         togglePause();
     } else if(dx+dy != 0 && !useInvCursor && !showAttack && !paused){

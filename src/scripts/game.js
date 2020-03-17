@@ -9,7 +9,6 @@ goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
 
 var wall = new Image();
 wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
-
 var door = new Image();
 door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
 
@@ -17,9 +16,16 @@ export const floorBGColor = "#999";
 
 var healthPotion = new Image();
 healthPotion.src = "https://image.flaticon.com/icons/svg/506/506927.svg";
-
 var manaPotion = new Image();
 manaPotion.src = "https://image.flaticon.com/icons/svg/1006/1006951.svg";
+var atkPotion = new Image();
+atkPotion.src = "https://image.flaticon.com/icons/svg/649/649081.svg";
+var defPotion = new Image();
+defPotion.src = "https://image.flaticon.com/icons/svg/1615/1615647.svg";
+var invulnPotion = new Image();
+invulnPotion.src = "https://image.flaticon.com/icons/svg/2119/2119271.svg";
+var deathPotion = new Image();
+deathPotion.src = "https://image.flaticon.com/icons/svg/1234/1234921.svg";
 
 var sword = new Image();
 sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
@@ -57,7 +63,11 @@ const newRoom = () => { // Generate a new room
     items = {
         "G":[],
         "HP":[],
-        "MP":[]
+        "MP":[],
+        "ATK": [],
+        "DEF": [],
+        "INVULN": [],
+        "DEATH": [],
     };
     for (let i = 1; i < maxWidth-1; i++) {
         monsters[i] = {};
@@ -89,15 +99,24 @@ items = { // Initial Room has items for player
     "G": [[17, 1], [17, 2]],
     "HP": [[16, 2], [16, 3]],
     "MP": [],
+    "ATK": [],
+    "DEF": [],  
+    "INVULN": [],
+    "DEATH":[],
 };
 // Some Health Potions
 let goldCount = 0;
-let inventory = ["HP",  "MP"];
+let inventory = ["HP", "ATK", "DEF", "INVULN", "DEATH"];
 let currentHP = 20;
 let maxHP = 100;
-let currentMP = 50;
+let currentMP = 100;
 let maxMP = 100;
 let userATK = 50;
+let userDef = 0;
+//Potion Effects
+let atkTurns = 0;
+let defTurns = 0;
+let invulnTurns = 0;
 let showAttack = false; // When you prep an attack, it'll show your attack range
 let attackBlock = [null,null]; // the attack coords of your character
 let monstersMove = false; // Tells you when the monsters should move
@@ -168,9 +187,9 @@ export const moveChar = (dx, dy) => {
                     if (monster.moved) { return; } // if the monster already moved this turn,
                     const monsterTurn = monster.takeTurn(char[0], char[1]);
                     if (monsterTurn) { // If this returns true, the monster will be attacking a position
-                        if (monster.attackX === char[0] && monster.attackY === char[1]) {
+                        if (invulnTurns === 0 && monster.attackX === char[0] && monster.attackY === char[1]) {
                             // If player is in the attack range, lose health
-                            currentHP -= monster.dmg;
+                            currentHP -= (monster.dmg - userDef);
                         }
                         // Attack has completed. Now set it to null
                         monster.attackX = null;
@@ -217,6 +236,22 @@ export const moveChar = (dx, dy) => {
                     }
                 })
             })
+            // Potions wears off over time
+            if (invulnTurns > 0) {
+                invulnTurns--;
+            }
+            if (defTurns > 0) {
+                defTurns--;
+                if (defTurns == 0) {
+                    userDef = 0;
+                }
+            }
+            if (atkTurns > 0) {
+                atkTurns--;
+                if (atkTurns == 0) {
+                    userATK = 50;
+                }
+            }
         }
         // once all the monsters have moved, we will set it back to false for next turn
         Object.values(monsters).forEach(row => {
@@ -315,6 +350,19 @@ export const moveChar = (dx, dy) => {
                     case "MP":
                         gameCanvas.drawImage(manaPotion, x * cD, y * cD, cD, cD);
                         break;
+                    case "ATK":
+                        gameCanvas.drawImage(atkPotion, x * cD, y * cD, cD, cD);
+                        break;
+                    case "DEF":
+                        gameCanvas.drawImage(defPotion, x * cD, y * cD, cD, cD);
+                        break;
+                    case "INVULN":
+                        gameCanvas.drawImage(invulnPotion, x * cD, y * cD, cD, cD);
+                        break;
+                    case "DEATH":
+                        gameCanvas.drawImage(deathPotion, x * cD, y * cD, cD, cD);
+                        break;
+
                     default:
                         console.log(`Unknown Item: ${itemName}`)
                         break;
@@ -360,7 +408,14 @@ export const moveChar = (dx, dy) => {
     //     }
     // }
     // Render the character
+    // If they're invuln, make them 0.1 to indicate invulnerability
+    if(invulnTurns > 0){
+        gameCanvas.globalAlpha = 0.1;
+    }
     renderChar(char[0], char[1]);
+    if (invulnTurns > 0) {
+        gameCanvas.globalAlpha = 1;
+    }
     // Render Monsters
     Object.values(monsters).forEach(row => {
         Object.values(row).forEach(monster => {
@@ -415,6 +470,18 @@ export const moveChar = (dx, dy) => {
             case "MP":
                 gameCanvas.drawImage(manaPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
                 break;
+            case "ATK":
+                gameCanvas.drawImage(atkPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
+                break;
+            case "DEF":
+                gameCanvas.drawImage(defPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
+                break;
+            case "INVULN":
+                gameCanvas.drawImage(invulnPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
+                break;
+            case "DEATH":
+                gameCanvas.drawImage(deathPotion, (i%invWidth)*cD + invXCoord, Math.floor(i/invWidth)*cD + invYCoord, cD, cD)
+                break;
             default:
                 break;
         }
@@ -455,7 +522,17 @@ export const moveChar = (dx, dy) => {
         gameCanvas.stroke();
         gameCanvas.closePath();
     }
-
+    // Potion Status
+    gameCanvas.beginPath();
+    gameCanvas.font = `${cD / 2}px Roboto, sans serif`;
+    gameCanvas.fillStyle = "#FFF";
+    if (defTurns > 0) {
+        gameCanvas.fillText(`DEF UP: ${defTurns}`, maxWidth * cD + 50, maxHeight * cD - 150);
+    }
+    if (atkTurns > 0) {
+        gameCanvas.fillText(`ATK UP: ${atkTurns}`, maxWidth * cD + 50, maxHeight * cD - 100);
+    }
+    gameCanvas.closePath();
     // Gold Counter
     gameCanvas.beginPath();
     gameCanvas.drawImage(goldBar, maxWidth*cD+20, 0, cD, cD);
@@ -509,6 +586,24 @@ export const useItem = () => {
                 // Mana
                 currentMP += 50;
                 break;
+            case "ATK":
+                // Increase Attack
+                userATK = 100;
+                atkTurns += 20;
+                break;
+            case "DEF":
+                // Increase Defense
+                defTurns += 20;
+                userDef = 10;
+                break;
+            case "INVULN":
+                // Invulnerability turns
+                invulnTurns += 30;
+                break;
+            case "DEATH":
+                // Kill all monsters
+                monsters = {};
+                break;
             default:
                 break;
         }
@@ -539,17 +634,12 @@ export const attackDir = (dx, dy) => {
 export const attack = () => {
     monstersMove = true;
     try{
+        // const damage = (atkTurns > 0) ? userATK + 50 : userATK;
         const newHP = monsters[attackBlock[0]][attackBlock[1]].takeDmg(userATK);
         if (newHP <= 0) {
+            const item = monsters[attackBlock[0]][attackBlock[1]].randomDrop();
             delete monsters[attackBlock[0]][attackBlock[1]];
-            const randomNum = rng(100);
-            if(randomNum > 99){
-                items["MP"].push([attackBlock[0], attackBlock[1]]);
-            } else if(randomNum > 60){
-                items["HP"].push([attackBlock[0], attackBlock[1]]);
-            } else {
-                items["G"].push([attackBlock[0], attackBlock[1]]);
-            }
+            items[item].push([attackBlock[0], attackBlock[1]])
         }
         toggleAttack();
     } catch (err) {
