@@ -616,16 +616,16 @@ export const useItem = () => {
             case "ATK":
                 // Increase Attack
                 userATK = 100;
-                atkTurns += 20;
+                atkTurns += 50;
                 break;
             case "DEF":
                 // Increase Defense
-                defTurns += 20;
+                defTurns += 50;
                 userDef = 10;
                 break;
             case "INVULN":
                 // Invulnerability turns
-                invulnTurns += 30;
+                invulnTurns += 25;
                 break;
             case "DEATH":
                 // Kill all monsters
