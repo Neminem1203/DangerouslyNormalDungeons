@@ -9,6 +9,9 @@ let paused = true;
 const keydownPress = e => {
     if(e.key === "r" || e.key === "R"){
         restartGame();
+        paused = false;
+        showAttack = false;
+        useInvCursor = false;
         return;
     }
     if(e.key === " "){e.preventDefault();}
