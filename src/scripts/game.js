@@ -43,7 +43,7 @@ let invCursorX = maxWidth * cD + 22;
 let invCursorY = 90;
 let invCursorPos = 0;
 // Char Pos
-const char = [startX, startY];
+let char = [startX, startY];
 // HP Bar
 const hpXCoord = maxWidth * cD + 22;
 const hpYCoord = 45;
@@ -94,16 +94,39 @@ const newRoom = () => { // Generate a new room
         }
     }
 }
-newRoom(); // Generate the room in the beginning of the game
-items = { // Initial Room has items for player
-    "G": [[17, 1], [17, 2]],
-    "HP": [[16, 2], [16, 3]],
-    "MP": [],
-    "ATK": [],
-    "DEF": [],  
-    "INVULN": [],
-    "DEATH":[],
-};
+
+export const restartGame = () => {
+    // Some Health Potions
+    char = [startX, startY];
+    goldCount = 0;
+    inventory = ["HP", "ATK", "DEF", "INVULN", "DEATH"];
+    currentHP = 20;
+    maxHP = 100;
+    currentMP = 100;
+    maxMP = 100;
+    userATK = 50;
+    userDef = 0;
+    //Potion Effects
+    atkTurns = 0;
+    defTurns = 0;
+    invulnTurns = 0;
+    showAttack = false; // When you prep an attack, it'll show your attack range
+    attackBlock = [null, null]; // the attack coords of your character
+    monstersMove = false; // Tells you when the monsters should move
+    gameOver = false;
+    showControls = false;
+    newRoom();
+    items = { // Initial Room has items for player
+        "G": [[17, 1], [17, 2]],
+        "HP": [[16, 2], [16, 3]],
+        "MP": [],
+        "ATK": [],
+        "DEF": [],
+        "INVULN": [],
+        "DEATH": [],
+    };
+    moveChar(0, 0);
+}
 // Some Health Potions
 let goldCount = 0;
 let inventory = ["HP", "ATK", "DEF", "INVULN", "DEATH"];
@@ -272,14 +295,15 @@ export const moveChar = (dx, dy) => {
         gameCanvas.fillStyle = "#555";
         gameCanvas.rect(100, 100, (maxWidth-4)*cD, (maxHeight-4)*cD);
         gameCanvas.fill();
-        gameCanvas.font = "30px Roboto, sans serif"
+        gameCanvas.font = "25px Roboto, sans serif"
         gameCanvas.fillStyle = "#FFF";
-        gameCanvas.fillText("Arrow keys = Movement", 110, 160)
-        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 110, 210)
-        gameCanvas.fillText("Z = Inventory", 110, 270)
-        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 110, 330)
+        gameCanvas.fillText("Arrow keys = Movement", 110, 140)
+        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 110, 170)
+        gameCanvas.fillText("Z = Inventory", 110, 200)
+        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 110, 230)
+        gameCanvas.fillText("R = Restarts Game", 110, 260)
         gameCanvas.font = "15px Roboto, sans serif"
-        gameCanvas.fillText("Waiting occurs when you hit an empty area", 500, 350)
+        gameCanvas.fillText("Waiting occurs when you hit an empty area", 500, 245)
         gameCanvas.font = "30px Roboto, sans serif"
         gameCanvas.fillText("Esc = Show/Hide Controls", 110, 430)
         gameCanvas.globalAlpha = 1;
@@ -545,6 +569,8 @@ export const moveChar = (dx, dy) => {
         gameCanvas.font = `${cD}px Roboto, sans serif`;
         gameCanvas.fillStyle = "#ff0000";
         gameCanvas.fillText("GAME OVER", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 25);
+        gameCanvas.font = `${cD/2}px Roboto, sans serif`;
+        gameCanvas.fillText("press r to restart", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 45)
         gameCanvas.closePath();
     }
     return;
@@ -653,3 +679,5 @@ export const attack = () => {
     }
     
 }
+
+restartGame();
