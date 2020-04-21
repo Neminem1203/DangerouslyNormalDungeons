@@ -97,7 +97,8 @@ const newRoom = () => { // Generate a new room
 
 export const restartGame = () => {
     // Some Health Potions
-    char = [startX, startY];
+    char = [startX, startY]; 
+    showInvCursor = false;
     goldCount = 0;
     inventory = ["HP", "ATK", "DEF", "INVULN", "DEATH"];
     currentHP = 20;
