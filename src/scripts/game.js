@@ -11,6 +11,8 @@ var wall = new Image();
 wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
 var door = new Image();
 door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
+var lockedDoor = new Image();
+lockedDoor.src = "https://image.flaticon.com/icons/svg/2833/2833434.svg";
 
 export const floorBGColor = "#999";
 
@@ -57,6 +59,11 @@ const hpHeight = 15
 // Items in the room
 let items = {};
 let monsters = {};
+
+const prevRoomFunc = (x, y) => {
+    prevRoom[0] = x;
+    prevRoom[1] = y;
+}
 
 const newRoom = () => { // Generate a new room
     monsters = {};
@@ -141,6 +148,7 @@ let userDef = 0;
 let atkTurns = 0;
 let defTurns = 0;
 let invulnTurns = 0;
+let prevRoom = [0,0];
 let showAttack = false; // When you prep an attack, it'll show your attack range
 let attackBlock = [null,null]; // the attack coords of your character
 let monstersMove = false; // Tells you when the monsters should move
@@ -175,29 +183,38 @@ export const moveChar = (dx, dy) => {
         })
     })
     // If not blocked by monster, continue the action
+    
     if(!monsterBlock && !showControls){
         char[0] += dx;
         char[1] += dy;
+        if (prevRoom[0] == char[0] && prevRoom[1] == char[1]){
+            char[0] -= dx;
+            char[1] -= dy;
+        }
         let movedRoom = false;
         // Check to see if the player went through a door
         // TODO: Make sure to only render doors that are valid (right now it's infinite dungeon)
         if(char[1] === (maxHeight-1)/2){
             if (char[0] === 0) {
                 char[0] = maxWidth - 2;
+                prevRoomFunc(char[0]+1, char[1])
                 newRoom();
                 movedRoom = true;
-            } else if (char[0] === maxWidth-1) {
+            } else if (char[0] === maxWidth - 1) {
                 char[0] = 1;
+                prevRoomFunc(char[0]-1, char[1])
                 newRoom();
                 movedRoom = true;
             }
         } else if(char[0] === (maxWidth-1)/2){
-            if(char[1] === 0){
+            if (char[1] === 0) {
                 char[1] = maxHeight-2;
+                prevRoomFunc(char[0], char[1]+1)
                 newRoom();
                 movedRoom = true;
-            } else if (char[1] === maxHeight-1){
+            } else if (char[1] === maxHeight - 1) {
                 char[1] = 1;
+                prevRoomFunc(char[0], char[1]-1)
                 newRoom();
                 movedRoom = true;
             }
@@ -334,7 +351,12 @@ export const moveChar = (dx, dy) => {
         if (i === 0 || i === maxWidth - 1) {
             for (let j = 0; j <= maxHeight; j++) {
                 if (j === (maxHeight - 1) / 2) {
-                    gameCanvas.drawImage(door, i*cD, j*cD, cD, cD);
+                    console.log(i,j);
+                    if (prevRoom[0] === i && prevRoom[1] === j) {
+                        gameCanvas.drawImage(lockedDoor, i * cD, j * cD, cD, cD);
+                    } else {
+                        gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
+                    }
                 } else {
                     gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 }
@@ -344,7 +366,12 @@ export const moveChar = (dx, dy) => {
         for (let j = 0; j < maxHeight; j++) {
             if (j === 0 || j === maxHeight - 1) {
                 if (i === (maxWidth - 1) / 2) {
-                    gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
+                    console.log(i, j);
+                    if (prevRoom[0] === i && prevRoom[1] === j) {
+                        gameCanvas.drawImage(lockedDoor, i * cD, j * cD, cD, cD);
+                    } else {
+                        gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
+                    }
                 } else {
                     gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 }
@@ -470,7 +497,7 @@ export const moveChar = (dx, dy) => {
     gameCanvas.closePath();
     if(showAttack === true){ // Show your attack range
         gameCanvas.beginPath();
-        gameCanvas.globalAlpha = 0.8;
+        gameCanvas.globalAlpha = 0.7;
         gameCanvas.drawImage(sword, attackBlock[0]*cD, attackBlock[1]*cD, cD, cD)
         gameCanvas.globalAlpha = 1;
         gameCanvas.closePath();
@@ -625,7 +652,7 @@ export const useItem = () => {
                 break;
             case "INVULN":
                 // Invulnerability turns
-                invulnTurns += 25;
+                invulnTurns += 30;
                 break;
             case "DEATH":
                 // Kill all monsters

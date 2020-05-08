@@ -103,13 +103,13 @@ export class Monster{
         console.log(itemDrop);
         switch(this.name){
             case "Octopus":
-                if(itemDrop > 80){
+                if(itemDrop > 70){
                     return "HP";
                 } else {
                     return "G";
                 }
             case "Werewolf":
-                if(itemDrop > 90){
+                if(itemDrop > 60){
                     return "HP";
                 // } else if(itemDrop > 80){
                 //     return "MP";
@@ -117,13 +117,13 @@ export class Monster{
                     return "G";
                 }
             case "Vampire":
-                if (itemDrop > 95) {
+                if (itemDrop > 90) {
                     return "INVULN";
-                } else if (itemDrop > 80) {
+                } else if (itemDrop > 70) {
                     return "ATK";
-                } else if(itemDrop > 65){
-                    return "DEF";
                 } else if(itemDrop > 50){
+                    return "DEF";
+                } else if(itemDrop > 25){
                     return "HP";
                 // } else if(itemDrop > 40){
                 //     return "MP"
@@ -131,9 +131,9 @@ export class Monster{
                     return "G"
                 }
             case "Reaper":
-                if(itemDrop > 50){
+                if(itemDrop > 40){
                     return "DEATH";
-                } else if(itemDrop > 10){
+                } else if(itemDrop > 20){
                     return "INVULN";
                 } else {
                     return "HP";
