@@ -118,6 +118,7 @@ export const restartGame = () => {
     atkTurns = 0;
     defTurns = 0;
     invulnTurns = 0;
+    prevRoom = [0,0];
     showAttack = false; // When you prep an attack, it'll show your attack range
     attackBlock = [null, null]; // the attack coords of your character
     monstersMove = false; // Tells you when the monsters should move
