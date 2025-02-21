@@ -1,5 +1,5 @@
 import "./styles/index.scss";
-import { maxHeight, maxWidth, moveChar, useItem, moveInvCursor, toggleAttack, attack, attackDir, toggleInvCursor, togglePause } from "./scripts/game"; 
+import { maxHeight, maxWidth, moveChar, useItem, moveInvCursor, toggleAttack, attack, attackDir, toggleInvCursor, togglePause, restartGame } from "./scripts/game"; 
 import { cD } from "./scripts/char";
 
 let useInvCursor = false;
@@ -7,6 +7,13 @@ let showAttack = false;
 let paused = true;
 
 const keydownPress = e => {
+    if(e.key === "r" || e.key === "R"){
+        restartGame();
+        paused = false;
+        showAttack = false;
+        useInvCursor = false;
+        return;
+    }
     if(e.key === " "){e.preventDefault();}
     let dx = 0;
     let dy = 0;

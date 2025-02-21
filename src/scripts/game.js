@@ -5,30 +5,32 @@ import { Monster} from "./monster";
 const rng = (num) => Math.floor(Math.random() * num)+1;
 //Images
 var goldBar = new Image();
-goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
+goldBar.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/goldIngots.svg";
 
 var wall = new Image();
-wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
+wall.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/Walls.svg";
 var door = new Image();
-door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
+door.src = "";
+var lockedDoor = new Image();
+lockedDoor.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/doubleDoor.svg";
 
 export const floorBGColor = "#999";
 
 var healthPotion = new Image();
-healthPotion.src = "https://image.flaticon.com/icons/svg/506/506927.svg";
+healthPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/HealthPotion.svg";
 var manaPotion = new Image();
-manaPotion.src = "https://image.flaticon.com/icons/svg/1006/1006951.svg";
+manaPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/ManaPotion.svg";
 var atkPotion = new Image();
-atkPotion.src = "https://image.flaticon.com/icons/svg/649/649081.svg";
+atkPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/ATKPotion.svg";
 var defPotion = new Image();
-defPotion.src = "https://image.flaticon.com/icons/svg/1615/1615647.svg";
+defPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/defPotion.svg";
 var invulnPotion = new Image();
-invulnPotion.src = "https://image.flaticon.com/icons/svg/2119/2119271.svg";
+invulnPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/invulnPotion.svg";
 var deathPotion = new Image();
-deathPotion.src = "https://image.flaticon.com/icons/svg/1234/1234921.svg";
+deathPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/deathPotion.svg";
 
 var sword = new Image();
-sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
+sword.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/attack.svg";
 // width and height of dungeons
 export const maxWidth = 19;
 export const maxHeight = 11;
@@ -43,7 +45,7 @@ let invCursorX = maxWidth * cD + 22;
 let invCursorY = 90;
 let invCursorPos = 0;
 // Char Pos
-const char = [startX, startY];
+let char = [startX, startY];
 // HP Bar
 const hpXCoord = maxWidth * cD + 22;
 const hpYCoord = 45;
@@ -57,6 +59,11 @@ const hpHeight = 15
 // Items in the room
 let items = {};
 let monsters = {};
+
+const prevRoomFunc = (x, y) => {
+    prevRoom[0] = x;
+    prevRoom[1] = y;
+}
 
 const newRoom = () => { // Generate a new room
     monsters = {};
@@ -94,16 +101,41 @@ const newRoom = () => { // Generate a new room
         }
     }
 }
-newRoom(); // Generate the room in the beginning of the game
-items = { // Initial Room has items for player
-    "G": [[17, 1], [17, 2]],
-    "HP": [[16, 2], [16, 3]],
-    "MP": [],
-    "ATK": [],
-    "DEF": [],  
-    "INVULN": [],
-    "DEATH":[],
-};
+
+export const restartGame = () => {
+    // Some Health Potions
+    char = [startX, startY]; 
+    showInvCursor = false;
+    goldCount = 0;
+    inventory = ["HP", "ATK", "DEF", "INVULN", "DEATH"];
+    currentHP = 20;
+    maxHP = 100;
+    currentMP = 100;
+    maxMP = 100;
+    userATK = 50;
+    userDef = 0;
+    //Potion Effects
+    atkTurns = 0;
+    defTurns = 0;
+    invulnTurns = 0;
+    prevRoom = [0,0];
+    showAttack = false; // When you prep an attack, it'll show your attack range
+    attackBlock = [null, null]; // the attack coords of your character
+    monstersMove = false; // Tells you when the monsters should move
+    gameOver = false;
+    showControls = false;
+    newRoom();
+    items = { // Initial Room has items for player
+        "G": [[17, 1], [17, 2]],
+        "HP": [[16, 2], [16, 3]],
+        "MP": [],
+        "ATK": [],
+        "DEF": [],
+        "INVULN": [],
+        "DEATH": [],
+    };
+    moveChar(0, 0);
+}
 // Some Health Potions
 let goldCount = 0;
 let inventory = ["HP", "ATK", "DEF", "INVULN", "DEATH"];
@@ -117,6 +149,7 @@ let userDef = 0;
 let atkTurns = 0;
 let defTurns = 0;
 let invulnTurns = 0;
+let prevRoom = [0,0];
 let showAttack = false; // When you prep an attack, it'll show your attack range
 let attackBlock = [null,null]; // the attack coords of your character
 let monstersMove = false; // Tells you when the monsters should move
@@ -151,29 +184,39 @@ export const moveChar = (dx, dy) => {
         })
     })
     // If not blocked by monster, continue the action
+    
     if(!monsterBlock && !showControls){
         char[0] += dx;
         char[1] += dy;
+        if (prevRoom[0] == char[0] && prevRoom[1] == char[1]){
+            char[0] -= dx;
+            char[1] -= dy;
+            return;
+        }
         let movedRoom = false;
         // Check to see if the player went through a door
         // TODO: Make sure to only render doors that are valid (right now it's infinite dungeon)
         if(char[1] === (maxHeight-1)/2){
             if (char[0] === 0) {
                 char[0] = maxWidth - 2;
+                prevRoomFunc(char[0]+1, char[1])
                 newRoom();
                 movedRoom = true;
-            } else if (char[0] === maxWidth-1) {
+            } else if (char[0] === maxWidth - 1) {
                 char[0] = 1;
+                prevRoomFunc(char[0]-1, char[1])
                 newRoom();
                 movedRoom = true;
             }
         } else if(char[0] === (maxWidth-1)/2){
-            if(char[1] === 0){
+            if (char[1] === 0) {
                 char[1] = maxHeight-2;
+                prevRoomFunc(char[0], char[1]+1)
                 newRoom();
                 movedRoom = true;
-            } else if (char[1] === maxHeight-1){
+            } else if (char[1] === maxHeight - 1) {
                 char[1] = 1;
+                prevRoomFunc(char[0], char[1]-1)
                 newRoom();
                 movedRoom = true;
             }
@@ -272,14 +315,15 @@ export const moveChar = (dx, dy) => {
         gameCanvas.fillStyle = "#555";
         gameCanvas.rect(100, 100, (maxWidth-4)*cD, (maxHeight-4)*cD);
         gameCanvas.fill();
-        gameCanvas.font = "30px Roboto, sans serif"
+        gameCanvas.font = "25px Roboto, sans serif"
         gameCanvas.fillStyle = "#FFF";
-        gameCanvas.fillText("Arrow keys = Movement", 110, 160)
-        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 110, 210)
-        gameCanvas.fillText("Z = Inventory", 110, 270)
-        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 110, 330)
+        gameCanvas.fillText("Arrow keys = Movement", 110, 140)
+        gameCanvas.fillText("Spacebar = Use Item/Start Attack", 110, 170)
+        gameCanvas.fillText("Z = Inventory", 110, 200)
+        gameCanvas.fillText("Spacebar (After Starting Attack) = Attack/Wait", 110, 230)
+        gameCanvas.fillText("R = Restarts Game", 110, 260)
         gameCanvas.font = "15px Roboto, sans serif"
-        gameCanvas.fillText("Waiting occurs when you hit an empty area", 500, 350)
+        gameCanvas.fillText("Waiting occurs when you hit an empty area", 500, 245)
         gameCanvas.font = "30px Roboto, sans serif"
         gameCanvas.fillText("Esc = Show/Hide Controls", 110, 430)
         gameCanvas.globalAlpha = 1;
@@ -308,20 +352,28 @@ export const moveChar = (dx, dy) => {
     for (let i = 0; i < maxWidth; i++) {
         if (i === 0 || i === maxWidth - 1) {
             for (let j = 0; j <= maxHeight; j++) {
+                gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 if (j === (maxHeight - 1) / 2) {
-                    gameCanvas.drawImage(door, i*cD, j*cD, cD, cD);
-                } else {
-                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
+                    console.log(i,j);
+                    if (prevRoom[0] === i && prevRoom[1] === j) {
+                        gameCanvas.drawImage(lockedDoor, i * cD, j * cD, cD, cD);
+                    } else {
+                        gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
+                    }
                 }
             }
             continue;
         }
         for (let j = 0; j < maxHeight; j++) {
             if (j === 0 || j === maxHeight - 1) {
+                gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 if (i === (maxWidth - 1) / 2) {
-                    gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
-                } else {
-                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
+                    console.log(i, j);
+                    if (prevRoom[0] === i && prevRoom[1] === j) {
+                        gameCanvas.drawImage(lockedDoor, i * cD, j * cD, cD, cD);
+                    } else {
+                        gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
+                    }
                 }
             }
         }
@@ -445,7 +497,7 @@ export const moveChar = (dx, dy) => {
     gameCanvas.closePath();
     if(showAttack === true){ // Show your attack range
         gameCanvas.beginPath();
-        gameCanvas.globalAlpha = 0.8;
+        gameCanvas.globalAlpha = 0.7;
         gameCanvas.drawImage(sword, attackBlock[0]*cD, attackBlock[1]*cD, cD, cD)
         gameCanvas.globalAlpha = 1;
         gameCanvas.closePath();
@@ -545,6 +597,8 @@ export const moveChar = (dx, dy) => {
         gameCanvas.font = `${cD}px Roboto, sans serif`;
         gameCanvas.fillStyle = "#ff0000";
         gameCanvas.fillText("GAME OVER", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 25);
+        gameCanvas.font = `${cD/2}px Roboto, sans serif`;
+        gameCanvas.fillText("press r to restart", (maxWidth * cD / 2) - cD * 4, maxHeight * cD / 2 + 45)
         gameCanvas.closePath();
     }
     return;
@@ -589,11 +643,11 @@ export const useItem = () => {
             case "ATK":
                 // Increase Attack
                 userATK = 100;
-                atkTurns += 20;
+                atkTurns += 50;
                 break;
             case "DEF":
                 // Increase Defense
-                defTurns += 20;
+                defTurns += 50;
                 userDef = 10;
                 break;
             case "INVULN":
@@ -653,3 +707,5 @@ export const attack = () => {
     }
     
 }
+
+restartGame();

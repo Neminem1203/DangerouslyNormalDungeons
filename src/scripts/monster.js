@@ -4,28 +4,28 @@
 const rng = (num) => Math.floor(Math.random() * num) + 1;
 
 var octopusIMG = new Image();
-octopusIMG.src = "https://image.flaticon.com/icons/svg/2196/2196893.svg";
+octopusIMG.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/octopusIMG.svg";
 
 var octopusATK = new Image();
-octopusATK.src = "https://image.flaticon.com/icons/svg/651/651510.svg";
+octopusATK.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/octopusATK.svg";
 
 var vampireIMG = new Image();
-vampireIMG.src = "https://image.flaticon.com/icons/svg/2286/2286964.svg";
+vampireIMG.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/vampire.svg";
 
 var vampireATK = new Image();
-vampireATK.src = "https://image.flaticon.com/icons/svg/209/209853.svg";
+vampireATK.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/vampireFang.svg";
 
 var werewolfIMG = new Image();
-werewolfIMG.src = "https://image.flaticon.com/icons/svg/2534/2534552.svg";
+werewolfIMG.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/werewolf.svg";
 
 var werewolfATK = new Image();
-werewolfATK.src = "https://image.flaticon.com/icons/svg/2068/2068587.svg";
+werewolfATK.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/WerewolfFang.svg";
 
 var reaperIMG = new Image();
-reaperIMG.src = "https://image.flaticon.com/icons/svg/2624/2624475.svg";
+reaperIMG.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/devil.svg";
 
 var reaperATK = new Image();
-reaperATK.src = "https://image.flaticon.com/icons/svg/2674/2674440.svg";
+reaperATK.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/devilATK.svg";
 
 export class Monster{
     constructor(type, x, y){
@@ -103,13 +103,13 @@ export class Monster{
         console.log(itemDrop);
         switch(this.name){
             case "Octopus":
-                if(itemDrop > 80){
+                if(itemDrop > 70){
                     return "HP";
                 } else {
                     return "G";
                 }
             case "Werewolf":
-                if(itemDrop > 90){
+                if(itemDrop > 60){
                     return "HP";
                 // } else if(itemDrop > 80){
                 //     return "MP";
@@ -117,13 +117,13 @@ export class Monster{
                     return "G";
                 }
             case "Vampire":
-                if (itemDrop > 95) {
+                if (itemDrop > 90) {
                     return "INVULN";
-                } else if (itemDrop > 80) {
+                } else if (itemDrop > 70) {
                     return "ATK";
-                } else if(itemDrop > 65){
-                    return "DEF";
                 } else if(itemDrop > 50){
+                    return "DEF";
+                } else if(itemDrop > 25){
                     return "HP";
                 // } else if(itemDrop > 40){
                 //     return "MP"
@@ -131,9 +131,9 @@ export class Monster{
                     return "G"
                 }
             case "Reaper":
-                if(itemDrop > 50){
+                if(itemDrop > 40){
                     return "DEATH";
-                } else if(itemDrop > 10){
+                } else if(itemDrop > 20){
                     return "INVULN";
                 } else {
                     return "HP";
