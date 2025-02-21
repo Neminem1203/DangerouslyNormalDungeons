@@ -5,32 +5,32 @@ import { Monster} from "./monster";
 const rng = (num) => Math.floor(Math.random() * num)+1;
 //Images
 var goldBar = new Image();
-goldBar.src = "https://image.flaticon.com/icons/svg/362/362944.svg";
+goldBar.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/goldIngots.svg";
 
 var wall = new Image();
-wall.src = "https://image.flaticon.com/icons/svg/351/351764.svg";
+wall.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/Walls.svg";
 var door = new Image();
-door.src = "https://www.flaticon.com/premium-icon/icons/svg/2401/2401054.svg";
+door.src = "";
 var lockedDoor = new Image();
-lockedDoor.src = "https://image.flaticon.com/icons/svg/2833/2833434.svg";
+lockedDoor.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/doubleDoor.svg";
 
 export const floorBGColor = "#999";
 
 var healthPotion = new Image();
-healthPotion.src = "https://image.flaticon.com/icons/svg/506/506927.svg";
+healthPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/HealthPotion.svg";
 var manaPotion = new Image();
-manaPotion.src = "https://image.flaticon.com/icons/svg/1006/1006951.svg";
+manaPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/ManaPotion.svg";
 var atkPotion = new Image();
-atkPotion.src = "https://image.flaticon.com/icons/svg/649/649081.svg";
+atkPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/ATKPotion.svg";
 var defPotion = new Image();
-defPotion.src = "https://image.flaticon.com/icons/svg/1615/1615647.svg";
+defPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/defPotion.svg";
 var invulnPotion = new Image();
-invulnPotion.src = "https://image.flaticon.com/icons/svg/2119/2119271.svg";
+invulnPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/invulnPotion.svg";
 var deathPotion = new Image();
-deathPotion.src = "https://image.flaticon.com/icons/svg/1234/1234921.svg";
+deathPotion.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/deathPotion.svg";
 
 var sword = new Image();
-sword.src = "https://image.flaticon.com/icons/svg/361/361806.svg";
+sword.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/attack.svg";
 // width and height of dungeons
 export const maxWidth = 19;
 export const maxHeight = 11;
