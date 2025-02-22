@@ -352,7 +352,6 @@ export const moveChar = (dx, dy) => {
     for (let i = 0; i < maxWidth; i++) {
         if (i === 0 || i === maxWidth - 1) {
             for (let j = 0; j <= maxHeight; j++) {
-                gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 if (j === (maxHeight - 1) / 2) {
                     console.log(i,j);
                     if (prevRoom[0] === i && prevRoom[1] === j) {
@@ -360,13 +359,14 @@ export const moveChar = (dx, dy) => {
                     } else {
                         gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
                     }
+                } else {
+                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 }
             }
             continue;
         }
         for (let j = 0; j < maxHeight; j++) {
             if (j === 0 || j === maxHeight - 1) {
-                gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 if (i === (maxWidth - 1) / 2) {
                     console.log(i, j);
                     if (prevRoom[0] === i && prevRoom[1] === j) {
@@ -374,6 +374,8 @@ export const moveChar = (dx, dy) => {
                     } else {
                         gameCanvas.drawImage(door, i * cD, j * cD, cD, cD);
                     }
+                } else {
+                    gameCanvas.drawImage(wall, i * cD, j * cD, cD, cD);
                 }
             }
         }

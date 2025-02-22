@@ -1,8 +1,7 @@
 import {floorBGColor} from "./game";
 
-
 var playerImg = new Image();
-playerImg.src = "@/src/svgs/character.svg";
+playerImg.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/character.svg";
 
 export let cD = 50; // character dimension
 // Players starting position
