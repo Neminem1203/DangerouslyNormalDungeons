@@ -13,7 +13,7 @@ var vampireIMG = new Image();
 vampireIMG.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/vampire.svg";
 
 var vampireATK = new Image();
-vampireATK.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/V1ampireFang.svg";
+vampireATK.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/VampireFang.svg";
 
 var werewolfIMG = new Image();
 werewolfIMG.src = "https://raw.githubusercontent.com/Neminem1203/DangerouslyNormalDungeons/refs/heads/master/src/svgs/werewolf.svg";
